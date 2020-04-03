@@ -1,0 +1,96 @@
+Pseudo Code:
+
+- Your program should accept exactly three command-line arguments:
+
+    the first (n) must be a positive integer less than or equal to 100.
+
+    **if (n !> 0  || n !<= 100)**
+
+- the second must be the name of a BMP to be resized, and
+
+- the third must be the name of the resized version to be written.
+
++ If your program is not executed with such, it should remind the user of correct usage, as with printf, and main should return 1.
+
+**TO DO**
+- Open in file - copy.c can do this (line 29)
+- Update out file's header info - copy.c can do this (line 56)
+- Read in file's scanline pixel by pixel - copy.c can do this (line 75)
+- Resize horizontally
+- Remember padding
+- Resize vertically
+- Write pixels into out file's scanline - copy.c can do this (line 78)
+
+What will change in the BITMAPINFOHEADER to resize?
+- File size
+- Image size (biSizeImage) in bytes and inc. padding: NEEDS TO SCALE WITH biWidth & biHeight
+    - bi.biSizeImage = ((sizeof(RGBTRIPLE) * bi.biWidth) + padding * abs (bi.biHeight);
+- Width (biWidth) in pixels exc. padding: bi.biWidth *= n;
+- Height (biHeight) in pixels exc. padding: bi.biHeight *=n;
+
+What will change in BITMAPFILEHEADER?
+- bfSize - total size of file (in bytes) inc. pixels, padding and headers: NEEDS TO SCALE WITH biWidth & biHeight
+    bf.bfSize = bi.biSizeImage + sizeof(BITMAPFILEHEADER) + sizeof(BITMAPINFOHEADER);
+
+Resizing horizontally pseudo
+
+    for each row (already in copy.c)
+        for each pixel in row (already in copy.c)
+            write to output file n times - see fread() & fwrite()
+        write output file's padding (see padding)
+        skip over in file's padding
+
+Resizing vertically
+rewrite method:
+    'remember' every pixel that needs to be written in an array
+    write that array as many times as needed
+
+    for each row
+        for each pixel
+            write to array n times
+        for n times
+            write array to outfile
+            write outfile padding
+        skip over infile padding [fseek over infile padding]
+
+recopy method:
+
+    for each row
+        for n-1 times
+            write pixels
+            send infile cursor back [fseek]
+        write pixels, padding to outfile
+        skip over infile padding [fseek]
+
+
+fread (data, size, number, inptr);
+- data: pointer to a struct in bmp.h that will contain the bytes you're reading
+- size: size of each element to read... sizeof(...)
+- number: number of elements to read at a time
+- inptr: FILE * to read from
+
+e.g. fread(&triple, sizeof(RGBTRIPLE), 1, inptr);
+
+Once file is read, resize horizontally: each pixel in a row needs to be written n times (triple *= n?)
+
+fwrite(data, size, number, outptr);
+- data: pointer to a struct in bmp.h that will contain the bytes you're reading from
+- size: size of each element to read... sizeof(...)
+- number: number of elements to read at a time
+- inptr: FILE * to write to
+
+file position indicator:
+fseek(inptr, offset, from);
+- inptr: FILE * to look in
+- offset: number of bytes to move cursor
+- from: [Do you want to move/offset relative to:]
+    - SEEK_CUR (current position in file)
+    - SEEK_SET (beginning of file)
+    - SEEK_END (end of file)
+
+Then padding needs determining:
+
+Does this mean playing with fseek/fputc? [Line 82 + 87]
+
+Formula to calculate padding:
+int padding = (4 - (bi.biWidth * sizeof(RGBTRIPLE)) % 4) % 4;

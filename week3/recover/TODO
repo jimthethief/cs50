@@ -1,0 +1,7 @@
+TODO
+
+- open memory card file
+- find beginning of JPEG
+- open a new JPEG
+- write 512 bytes until new JPEG found
+- detect end of file
