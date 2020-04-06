@@ -1,0 +1,94 @@
+// MAKING SWEET NODES
+
+typedef struct node
+{
+    char word[LENGTH + 1];
+    struct node *next;
+}
+node;
+
+// Allocating enough space in memory to store nodes - make empty nodes
+
+node *node1 = malloc(sizeof(node));
+node *node2 = malloc(sizeof(node));
+
+// You can set the values of nodes with arrow notation as so:
+
+strcopy(node1->word, "Hello"); // Could you sub in "Hello" / "World"...
+strcopy(node2->word, "World"); // With words from text/dictionary files?
+
+// You link can link the nodes with arrow notation too
+
+node1->next = node2;
+
+// A HASH TABLE IS SIMPLY AN ARRAY OF LINKED LISTS
+// where each element of the array is a node *
+
+// So it could look like this:
+
+// Define struct for node:
+
+typedef struct node
+{
+    char word[LENGTH + 1];
+    struct node *next;
+}
+node;
+
+// Then create an array of nodes of a set size
+// (same as creating array of another variable type):
+
+node *hashtable[50]; // makes hashtable with 50 buckets
+
+// MAKING A NEW WORD
+// Scan dictionary word by word (line 50 dictionary.c)
+// takes dictionary file ('file'), looks for a string ('%s'), ...
+// ... put that string into a variable ('word'), until EOF
+
+    while (fscanf(file, "%s", word) != EOF)
+    {
+        // NEED TO MALLOC A NODE * FOR EACH NEW WORD
+
+        node *node1 = malloc(sizeof(node));
+        if (node1 == NULL) // Check that malloc returns enough memory
+            {
+                unload(); // defined in dictionary.h
+                return false; // 'unload' & return false if node1 returns NULL
+            }
+
+        strcpy(node1->word, word); // if malloc succeeds, copy word into node
+
+        // TO INSERT NODE INTO LINKED LIST, POINT TO NODE THAT WAS
+        // PREVIOUSLY THE FIRST VALUE IN THE LIST
+        // DON'T BREAK THE LINKED LIST BY POINTING THE HEAD STRAIGHT TO CURRENT NODE
+        // E.G. NOT 'node1->next = head' BUT:
+
+        node1->next = head; // now safe to assign head pointer to new node
+        head = node1;
+    }
+
+// HASH FUNCTION will take string, return index (index < the number of buckets)
+// Same value must map to the same bucket every time i.e. odds/evens, first letter
+
+    if (n[0] <= 'e'), atoe
+    else if (n[0] >'e' && <= 'n', fton
+    else if (n[0] > 'n' && <= 's', otos
+    else if (n[0] > 's' && <= 'z', ttoz
+    else NULL
+
+// ONCE HASH FUNCTION IS MADE, HASH THE WORD
+    - node1->word has the word from the dictionary
+    - hashing node1->word will give us the index of a bucket in has table
+    - insert into the linked list
+
+
+!!HELP!!
+https://study.cs50.net/hashtables
+https://study.cs50.net/linked_lists
+
+https://yourbasic.org/algorithms/hash-tables-explained/ <<<<Read this
+https://stackoverflow.com/questions/730620/how-does-a-hash-table-work <<< + this
+
+https://medium.com/@anthonycatantan/i-saw-the-light-my-experience-with-cs50-weeks-5-and-6-72c29a6230fb
+
+
