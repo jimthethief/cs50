@@ -1,0 +1,33 @@
+Open CSV File // read contents into memory
+Open DNA Sequence File // read contents into memory
+
+name, AGAT, AATG, TATC
+first row = name
+remaining rows = STR codes
+
+// Python's csv module has a reader function (read file as series of lists)
+// and DictReader function (read file as series of dictionaries)
+
+// Python's sys module gives access to sys.argv for command line arguments
+    - 1st arg is DNA database (CSV file)
+    - 2nd arg is DNA sequence (txt file)
+
+// Once text file 'f' is opened using open(filename) [open(f)], read its contents with f.read()
+
+For each STR [AGAT, AATG, TATC] - compute the longest run of consecutive repeats in DNA sequence
+Compare the totals of these counts against each row in the CSV file to search for match
+
+// For each position [index in list] in the sequence - compute how many times the STR repeats from that position:
+// So for each position, keep checking successive substrings until STR no longer repeats
+
+// Handy functions for this:
+    - len(s) calculates length of string
+    - s[i:j] takes string s and returns substring with all chars from the ith char up to (not inc.) jth char
+
+Save STR counts in a data structure - list or dictionary
+// if match is found
+    - for each row, check if each STR count matches - if so, print name of match
+// else print no match
+
+// int(x) takes the string x and turns it into an integer e.g. int('2') returns 2 as int
+// to confirm a match, you'll need to check every column except the 1st(which is the name)

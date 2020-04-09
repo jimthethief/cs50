@@ -1,0 +1,9 @@
+PSEUDOCODE - CREDIT.PY
+
+# Prompt user for input cs50.get_int
+# convert input into list and reverse
+# multiply every digit with odd index and add to array1
+# sum those digits - add together with unmultiplied contents of array2
+# validate checksum - is last digit of above sum 0?
+# validate company's identifier - is num == 4 (Visa), is num >= 34 and <= 37 (AMEX), is num >= 51 or <= 55
+# validate number's length - is num >= 13 and <= 16 and not 14

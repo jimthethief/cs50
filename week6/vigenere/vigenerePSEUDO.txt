@@ -1,0 +1,15 @@
+PSEUDOCODE — vigenere
+
+# get the key in command line - sys.argv[1] // argv[0] is filename
+# python casts to integer with int(sys.argv[1]) rather than C's atoi(argv[1])
+# get the plaintext get_string
+# encipher
+# print cipher
+
+usage: $ python vigenere.py 2
+         plaintext: Hi there!
+         ciphertext: Jk vjgtg!
+
+# isaplpha / isupper / islower functions are valid in python
+# ord and chr will be useful
+
