@@ -1,0 +1,19 @@
+{% extends "layout.html" %}
+
+{% block body %}
+    <form action="/add" method="post">
+        <input id="task" name="task" type="text" placeholder="Enter a task...">
+        <input id="submit" type="submit" value="Add Task" disabled>
+    </form>
+    <script>
+        task = document.querySelector("#task");
+        submit = document.querySelector('#submit');
+        task.onkeyup = function() {
+            if (task.value === '') {
+                submit.disabled = true;
+            } else {
+                submit.disabled = false;
+            }
+        }
+    </script>
+{% endblock %}

@@ -1,0 +1,77 @@
+<!DOCYTPE html>
+    <html lang="en">
+        <head>
+            <title>__register__</title>
+        </head>
+        <body>
+            <style>
+            body
+            {
+                margin: 0;
+                background-color: blue;
+                font-family: 'Courier New', Courier;
+                color: white;
+            }
+
+            li
+            {
+                list-style: none;
+            }
+
+            a
+            {
+                margin-top: 20px;
+                background: black;
+                color: lightgrey;
+                text-decoration: none;
+                transition: color, letter-spacing 0.5s;
+            }
+
+            a:hover
+            {
+                color: white;
+                letter-spacing: 2px;
+                transition: color, letter-spacing 0.5s;
+            }
+
+            #task
+            {
+                font-family: 'Courier New', Courier;
+            }
+
+            #submit:enabled
+            {
+                background: black;
+                font-family: 'Courier New', Courier;
+                color: lightgrey;
+                text-decoration: none;
+                transition: color, letter-spacing 0.5s;
+            }
+
+            #submit:enabled:hover
+            {
+                color: white;
+                cursor: pointer;
+                letter-spacing: 2px;
+                transition: color, letter-spacing 0.5s;
+            }
+
+            #submit:disabled
+            {
+                background: darkgrey;
+                font-family: 'Courier New', Courier;
+                opacity: 0.8;
+                color: lightgrey;
+                text-decoration: none;
+            }
+
+            #submit:disabled:hover
+            {
+                cursor:not-allowed;
+            }
+
+        </style>
+            {% block body %}
+            {% endblock %}
+        </body>
+    </html>

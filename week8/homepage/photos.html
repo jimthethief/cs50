@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+   <head>
+      <link href="https://fonts.googleapis.com/css?family=Quicksand:300,400&display=swap" rel="stylesheet">
+      <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css" rel="stylesheet">
+      <link href="styles.css" rel="stylesheet">
+      <link href="simpleLightbox.min.css" rel="stylesheet">
+      <title>photos.</title>
+   </head>
+   <body>
+      <nav class="navbar navbar-expand-lg navbar-light photos">
+         <a class="navbar-brand" id="logo" href="index.html">j_h.</a>
+         <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+         <span class="navbar-toggler-icon"></span>
+         </button>
+         <div class="collapse navbar-collapse justify-content-end" id="navbarNav">
+            <ul class="navbar-nav text-right">
+               <li class="nav-item">
+                  <a class="nav-link" href="index.html">home.<span class="sr-only">(current)</span></a>
+               </li>
+               <li class="nav-item">
+                  <a class="nav-link" href="work.html">work.</a>
+               </li>
+               <li class="nav-item active">
+                  <a class="nav-link" href="photos.html">photos.</a>
+               </li>
+               <li class="nav-item">
+                  <a class="nav-link" href="contact.html">contact.</a>
+               </li>
+            </ul>
+         </div>
+      </nav>
+      <div class="jumbotron" id="welcome">
+         <div class="img-pad"></div>
+         <div class="container-sm" id="img-cont">
+            <a class="showGalleryFromArray" role="button">
+               <div class="hs-wrapper">
+                  <img src="../assets/photos/jh2_thumb.png" alt="image01"/>
+                  <img src="../assets/photos/jh_01.png" alt="image05"/>
+                  <img src="../assets/photos/jhballoon2_thumb.png" alt="image02"/>
+                  <img src="../assets/photos/jh_02.png" alt="image06"/>
+                  <img src="../assets/photos/jh_thumb.png" alt="image03"/>
+                  <img src="../assets/photos/jh_03.png" alt="image07"/>
+                  <img src="../assets/photos/jhballoon3_thumb.png" alt="image04"/>
+                  <img src="../assets/photos/jh_04.png" alt="image08"/>
+               </div>
+            </a>
+         </div>
+      </div>
+      <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js" integrity="sha384-ZMP7rVo3mIykV+2+9J3UJ46jBk0WLaUAdn689aCwoqbBJiSnjAK/l8WvCWPIPm49" crossorigin="anonymous"></script>
+      <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js" integrity="sha384-ChfqqxuZUCnJSK3+MXmPNIyE6ZbWh2IMqE241rYiqJxyMiZ6OW/JmZQ5stwEULTy" crossorigin="anonymous"></script>
+      <script src='/assets/js/simpleLightbox.min.js'></script>
+      <script>
+         $('.showGalleryFromArray').on('click', function() {
+         SimpleLightbox.open({
+             items: ['assets/photos/large/jh_01.png', 'assets/photos/large/jh_08.png', 'assets/photos/large/jh_02.png', 'assets/photos/large/jh_07.png', 'assets/photos/large/jh_03.png', 'assets/photos/large/jh_06.png', 'assets/photos/large/jh_04.png', 'assets/photos/large/jh_05.png']
+         });
+         });
+      </script>
+   </body>
+</html>

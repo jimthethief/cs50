@@ -1,0 +1,17 @@
+{% extends "layout.html" %}
+
+{% block body %}
+
+<p>
+    {% if num == 0: %}
+        The coin landed on HEADS.
+    {% else %}
+        The coin landed on TAILS.
+    {% endif %}
+</p>
+<h2>
+    You chose {{ flip }} //
+    {{ result }}
+</h2>
+
+{% endblock %}

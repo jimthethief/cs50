@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>Hello!</title>
+		<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+		<script>
+			function greet()
+			{
+				let name = document.querySelector('#name').value;
+				let result = document.querySelector('#result');
+				if (name === '')
+				{
+					name = 'stranger';
+				}
+				result.innerHTML = 'Hello, ' + name + '!';
+				result.classList.toggle('fade');
+			}
+		</script>
+	</head>
+	<body>
+		<style>
+			#result {
+				opacity: 0;
+  				transition: opacity 1s;
+			}
+
+			#result.fade {
+				opacity: 1;
+			}
+		</style>
+		<form onsubmit="greet(); return false;">
+			<input type="text" placeholder="Type name here..." id="name">
+			<input type="submit" value="Say hi!">
+		</form>
+		<h1 id="result">
+		</h1>
+	</body>
+</html>
