@@ -1,0 +1,34 @@
+{% extends "layout.html" %}
+
+{% block title %}
+    Buy
+{% endblock %}
+
+{% block main %}
+    <form action="/buy" name="buy-form" method="post" class="needs-validation" novalidate>
+        <div class="form-group">
+            <input autocomplete="off" autofocus class="form-control" name="symbol" placeholder="Enter a stock symbol..." type="text" onkeyup="checkFields()" required>
+            <div class="invalid-feedback">
+              Please provide a stock symbol.
+            </div>
+        </div>
+        <div class="form-group">
+            <div id="shares" class="input-group">
+                <div class="input-group-prepend">
+                  <div class="input-group-text">#</div>
+                </div>
+                <input autocomplete="off" class="form-control" min="1" name="shares" placeholder="Amount..." type="number" onkeyup="checkFields()" aria-describedby="sharesHelp" required>
+                <div class="invalid-feedback">
+                  Please provide a valid number of shares.
+                </div>
+            </div>
+        </div>
+        <div class="form-group">
+            <small id="sharesHelp" class="form-text text-muted">
+              Please enter the amount of shares that you would like to buy in your chosen stock (minimum of 1).
+            </small>
+        </div>
+        <input class="btn btn-primary" name="buy" type="submit" value="Buy" disabled>
+    </form>
+    <script src="/static/buy.js"></script>
+{% endblock %}

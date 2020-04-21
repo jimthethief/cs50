@@ -1,0 +1,60 @@
+# TODO
+
+# register
+    - When requested via GET, should display a registration form
+    - When form is submitted via POST, insert the new user into **users** table
+    - Be sure to check for invalid inputs:
+        - user didn't type a username/email
+        - username/email already exists in database
+        - password confirmation doesn't match password field
+    - Be sure to hash the user's password before storing in database
+
+# quote
+    - When requested via GET, should display form to request a stock quote
+    - When form is submitted via POST, lookup the stock symbol by calling **lookup** function and display results
+        - lookup function is inside helpers.py - try printing out what comes back from dictionary
+            - ^^ so you know what function is returning for us to display current value of stock
+        - if lookup function returns back **None** no stock symbols were found
+            - ^^ handle this outcome as well - display error message e.g. 'stock does not exist'
+# buy
+    - When requested via GET, should display form to buy a stock
+    - When form is submitted via POST, purchase the stock so long as the user can afford it
+        - query database for cash that user has and compare against price of the stock(s) being bought
+        - CREATE TABLE in sqlite3:
+            - e.g. CREATE TABLE 'stocks' ('stock bought' VARCHAR(5), 'number bought' INTEGER,
+            'date/time of transaction' TIMESTAMP, 'user_id' FOREIGN KEY(link to users.id))
+# index
+    - Display a table with all of the current user's stocks:
+        - number of shares of each stock: via stocks table from buy -
+            - query table for all of stocks that logged in user currently owns
+            - access logged in user via session["user_id"]
+        - current price of each stock: via **lookup** function
+        - total value of each holding: number of shares * current price of each stock
+        - + display user's current cash balance from database
+# sell
+    - When requested via GET, should display a form to sell a stock
+    - When form is submitted via POST, sell the specified number of shares of stock, and update user's cash
+        - Error checking:
+            - make sure user owns stock
+            - make sure user is only selling as many stocks as they currently own
+    - Update tables to indicate new values
+
+# history
+    - display a table with a history of all transactions, listing every buy + sell, row by row
+    - can either be implemented as a new SQL table or from existing data
+
+# personal touch
+    - make it look nice
+    - additional feature to add to app
+    - profile pic?
+    - up / down arrows for gains and losses on sales?
+        cs50 suggestions:
+            - allow user to change password
+            - allow user to add cash
+            - allow buying and selling from the index page
+            - add password complexity requirements
+            
+# TABLES:
+    # EITHER CREATE SEPARATE TABLES OR INCLUDE SALES AS -1 IN SALES/TRANSACTION TABLE
+
+Publishable API Token: pk_365f06d056ec4c648b84fd7150770a6b

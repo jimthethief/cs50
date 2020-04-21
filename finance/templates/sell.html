@@ -1,0 +1,39 @@
+{% extends "layout.html" %}
+
+{% block title %}
+    Sell
+{% endblock %}
+
+{% block main %}
+    <form action="/sell" name="buy-form" method="post" class="needs-validation" novalidate>
+        <div class="form-group">
+            <select class="form-control" name="symbol">
+                <option disabled selected value="">Symbol</option>
+                {% for stock in getStocks %}
+                    <option value="{{ stock['symbol'] }}">{{ stock["symbol"] }}</option>
+                {% endfor %}
+            </select>
+            <div class="invalid-feedback">
+              Please provide a stock symbol.
+            </div>
+        </div>
+        <div class="form-group">
+            <div id="shares" class="input-group">
+                <div class="input-group-prepend">
+                  <div class="input-group-text">#</div>
+                </div>
+                <input autocomplete="off" class="form-control" min="1" name="shares" placeholder="Amount..." type="number" aria-describedby="sharesHelp" required>
+                <div class="invalid-feedback">
+                  Please provide a valid number of shares.
+                </div>
+            </div>
+        </div>
+        <div class="form-group">
+            <small id="sharesHelp" class="form-text text-muted">
+              Please enter the amount of shares that you would like to sell in your chosen stock (minimum of 1).
+            </small>
+        </div>
+        <input class="btn btn-primary" name="buy" type="submit" value="Sell">
+    </form>
+    <script src="/static/buy.js"></script>
+{% endblock %}

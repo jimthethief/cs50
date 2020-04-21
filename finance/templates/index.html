@@ -1,0 +1,51 @@
+{% extends "layout.html" %}
+
+{% block title %}
+    Index
+{% endblock %}
+
+{% block main %}
+    <div class="container">
+        <table class="table table-hover">
+            <thead class="thead-dark">
+                <tr>
+                    <th>Symbol</th>
+                    <th>Name</th>
+                    <th>Shares</th>
+                    <th>Paid</th>
+                    <th>Current</th>
+                    <th>TOTAL</th>
+                    <th><i class="fas fa-caret-up"></i> / <i class="fas fa-caret-down"></i></th>
+                </tr>
+            </thead>
+            <tfoot>
+                <tr id="overall">
+                    <td> <i class="fas fa-dollar-sign"></i> + <i class="fas fa-file-invoice-dollar"></i> </td>
+                    <td colspan="4"></td>
+                    <td> {{ usd(float(overall)) }} </td>
+                    <td><i class="fas {{ ovrArrow }}"></i></td>
+                </tr>
+            </tfoot>
+            <tbody>
+                {% for stock in getStocks %}
+                    {% set newPrice = float(lookup(stock["symbol"])["price"]) %}
+                    {% set arrow =  compare(newPrice, stock["value"]) %}
+                    <tr>
+                        <td class="symbol">{{ stock["symbol"] }}</td>
+                        <td>{{ stock["name"] }}</td>
+                        <td>{{ stock["shares"] }}</td>
+                        <td>{{ usd(stock["value"]) }}</td>
+                        <td>{{ usd(newPrice) }}</td>
+                        <td>{{ usd((stock["shares"] * newPrice)) }}</td>
+                        <td><i class="fas {{ arrow }}"></i></td>
+                    </tr>
+                {% endfor %}
+                <tr>
+                    <td><i class="fas fa-dollar-sign"></i></td>
+                    <td colspan="4"></td>
+                    <td>{{ usd(float(balance)) }}</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+{% endblock %}

@@ -1,0 +1,32 @@
+{% extends "layout.html" %}
+
+{% block title %}
+    Search
+{% endblock %}
+
+{% block main %}
+    <div class="container">
+        <form action="/quote" name="stock" method="post">
+            <div class="form-group">
+                <input autocomplete="off" autofocus class="form-control" name="symbol" placeholder="Enter a stock symbol..." type="text">
+            </div>
+            <input class="btn btn-primary" name="search" type="submit" value="Search" disabled>
+        </form>
+    </div>
+    <div class="container" id="browse">
+        <p class="small text-center text-muted">
+            You can browse stocks <a href="https://iextrading.com/apps/stocks/" target="_blank">here</a>.
+        </p>
+    </div>
+    <script>
+        symbol = document.querySelector("form[name='stock'] input[name='symbol']");
+        submit = document.querySelector("form[name='stock'] input[name='search']");
+        symbol.onkeyup = function() {
+            if (symbol.value === '') {
+                submit.disabled = true;
+            } else {
+                submit.disabled = false;
+            }
+        }
+    </script>
+{% endblock %}

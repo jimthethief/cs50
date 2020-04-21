@@ -1,0 +1,25 @@
+{% extends "layout.html" %}
+
+{% block title %}
+    Results
+{% endblock %}
+
+{% block main %}
+    <div class="container">
+        <div class="row text-center align-items-center">
+             <div class="col">
+                 <h3>
+                     Results
+                     <small class="text-muted">for {{ name }}({{ symbol }}):</small>
+                 </h3>
+             </div>
+        </div>
+       <div class="row text-center align-items-center">
+           <div class="col">
+               <p>Currently, a share in {{ name }}({{ symbol }}) costs <mark>{{ price }}</mark>.</p>
+           </div>
+        </div>
+    </div>
+    <a class="btn btn-primary" href="/quote" role="button">Back to search</a>
+    <a class="btn btn-primary" href="/buy" role="button">Go to buy</a>
+{% endblock %}

@@ -1,0 +1,66 @@
+{% extends "layout.html" %}
+
+{% block title %}
+    Index
+{% endblock %}
+
+{% block main %}
+    <div class="container">
+        <form class="form-inline float-right" action="/history" name="search" method="post">
+            <div class="form-row">
+                <div class="col">
+                    <div class="form-group">
+                        <input autocomplete="off" autofocus class="form-control" name="symbol" placeholder="Enter a stock symbol..." type="text">
+                    </div>
+                </div>
+                <div class="col">
+                    <input class="btn btn-primary" name="search" type="submit" value="Search" disabled>
+                </div>
+            </div>
+        </form>
+        <table class="table table-hover">
+            <thead class="thead-dark">
+                <tr>
+                    <th>Buy/Sell</th>
+                    <th>Symbol</th>
+                    <th>Shares</th>
+                    <th>Paid</th>
+                    <th>Total</th>
+                    <th>Timestamp</th>
+                </tr>
+            </thead>
+            <tbody>
+
+                {% for record in getHistory %}
+
+                    {% if record["price"] > 0 %}
+                        <tr>
+                            <td class="buy">Bought</td>
+                    {% else %}
+                        <tr>
+                            <td class="sell">Sold</td>
+                    {% endif %}
+                    <td class="symbol">{{ record["symbol"] }}</td>
+                    <td>{{ record["shares"] }}</td>
+                    <td>{{ usd(record["price"]) }}</td>
+                    <td>{{ usd(record["cost"]) }}</td>
+                    <td>{{ record["time"] }}</td>
+                    </tr>
+
+                {% endfor %}
+
+            </tbody>
+        </table>
+    </div>
+    <script>
+        symbol = document.querySelector("form[name='search'] input[name='symbol']");
+        submit = document.querySelector("form[name='search'] input[name='search']");
+        symbol.onkeyup = function() {
+            if (symbol.value === '') {
+                submit.disabled = true;
+            } else {
+                submit.disabled = false;
+            }
+        }
+    </script>
+{% endblock %}

@@ -1,0 +1,179 @@
+/* G L O B A L */
+
+html {
+	font-size: 1rem;
+}
+main {
+	/* scroll horizontally as needed */
+	overflow-x: auto;
+	/* center contents */
+	text-align: center;
+}
+main img {
+	/* constrain images on small screens */
+	max-width: 100%;
+}
+
+/* N A V  +  L I N K S */
+
+nav .navbar-brand {
+	/* size for brand */
+	font-size: xx-large;
+}
+/* colors for brand */
+
+nav .navbar-brand {
+	color: #fff;
+	transition: letter-spacing ease-out 1s;
+}
+nav .navbar-brand:hover {
+	color: #fff;
+}
+a {
+	color: #FF1493;
+	transition: color ease-out 0.3s;
+	transition: color ease-out 0.6s;
+}
+a:hover {
+	color: #000;
+	text-decoration: none;
+	transition: color ease-in 0.3s;
+}
+#navbar a {
+	color: #FFF;
+	transition: color ease-out 0.3s;
+}
+#navbar a:hover {
+	color: #FF1493;
+	transition: color ease-in 0.3s;
+}
+nav .navbar-brand .blue {
+	color: #4285F4
+}
+nav .navbar-brand .yellow {
+	color: #F4B400;
+}
+nav .navbar-brand .green {
+	color: #0F9D58;
+}
+.code {
+	color: rgb(255, 20, 147);
+	color: rgba(255, 20, 147, 0);
+	transition: color 1s ease-out;
+}
+nav .navbar-brand:hover .code {
+	color: rgb(255, 20, 147);
+	color: rgba(255, 20, 147, 1);
+	transition: 0.5s ease-in;
+	transition-property: color;
+}
+
+/* F O R M S  +  B T N S */
+
+main .form-control {
+	/* center form controls */
+	display: inline-block;
+	/* override Bootstrap's 100% width for form controls */
+	width: auto;
+}
+.form-control {
+	background: #343a40;
+	color: #FF1493;
+}
+.form-control:focus {
+	background: #343a40;
+	color: #FF1493;
+	border-color: #FF1493;
+	box-shadow: inset 0 1px 1px rgba(255, 20, 147, 0.075);
+	transition: border-color ease-in 0.3s;
+}
+.btn-primary {
+	background: rgba(255, 20, 147, 0.9);
+	color: #FFF;
+	border: 1px #000;
+	transition: background, letter-spacing ease-out 0.2s;
+}
+.btn-primary:hover {
+	background: rgba(255, 20, 147, 1);
+	color: #FFF;
+	letter-spacing: 1.2px;
+	transition: background, letter-spacing ease-in 0.2s;
+}
+.btn-primary:disabled,
+.btn-primary[disabled] {
+	background: rgba(255, 20, 147, 0.8);
+	color: rgba(52, 58, 64, 0.5);
+}
+.btn-primary:disabled,
+.btn-primary[disabled]:hover {
+	background: rgba(255, 20, 147, 0.8);
+	letter-spacing: inherit;
+	color: rgba(52, 58, 64, 0.5);
+}
+
+/* I N D E X   +  H I S T O R Y */
+
+.table .thead-dark th {
+	background: #343a40;
+	letter-spacing: 1.7px;
+}
+.table-hover tbody tr:hover {
+	transition: background ease-out 0.2s;
+}
+.table-hover tbody tr:hover {
+	background: rgba(255, 20, 147, 0.8);
+	transition: background ease-in 0.2s;
+}
+.table-hover tbody tr .symbol {
+	transition: letter-spacing ease-out 0.5s;
+}
+.table-hover tbody tr:hover .symbol {
+	letter-spacing: 1.2px;
+	transition: letter-spacing ease-in 0.5s;
+}
+#overall {
+	color: rgba(255, 20, 147, 1);
+	font-weight: 600;
+	letter-spacing: 2px;
+}
+.fa-caret-up {
+	color: #0F9D58;
+}
+.fa-caret-down {
+	color: #DB4437;
+}
+.fa-minus {
+	color: lightgrey;
+}
+.table>tbody .buy {
+	background: #CFFFC7;
+	color: #228B22;
+}
+.table>tbody .sell {
+	background: #FF9494;
+	color: #A50203;
+}
+.form-inline {
+	padding-bottom: 1vh;
+}
+.col .btn-primary:hover {
+	letter-spacing: inherit;
+}
+
+/* B U Y */
+
+.input-group-text {
+	background: rgba(255, 20, 147, 1);
+	color: #FFF;
+}
+#shares {
+	max-width: 200px;
+	text-align: center;
+	margin: auto;
+}
+
+/* Q U O T E */
+
+#browse {
+	padding-top: 20px;
+}
