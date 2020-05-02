@@ -1,0 +1,239 @@
+{% extends "layout.html" %}
+
+{% block title %}
+    Index
+{% endblock %}
+
+{% block main %}
+    <style>
+        .card-header, 
+        .table-hover tbody tr:hover,
+        .table-hover tbody tr:hover {
+            background: {{ managerStats['primary'] }}; 
+            color: {{ managerStats['secondary'] }};
+            transition: background ease-in 0.2s;
+            z-index: 0;
+        }  
+
+        .sticker::before {
+            background-image: linear-gradient(to bottom right, {{ managerStats['primary'] }}, {{ managerStats['secondary'] }});
+            background-size: cover;
+        }
+
+        .table-hover tbody tr {
+	        transition: background ease-out 0.2s;
+        }
+
+    </style>
+    <div class="container">
+        <div class="row">
+            <div class="col-12 col-md-6">
+                <div class="windowfy">
+                    <div class="window">
+                        <div class="title-bar">
+                        <div class="title-bar-text">MeMail — {{ email }}</div>
+                        <div class="title-bar-controls">
+                            <button aria-label="Minimize"></button>
+                            <button aria-label="Maximize"></button>
+                            <button aria-label="Close"></button>
+                        </div>
+                        </div>
+                        <div class="window-body">
+                            <p>{{ test }}</p>
+                            <table>
+                                <tr>
+                                    <th>Company</th>
+                                    <th>Contact</th>
+                                    <th>Country</th>
+                                </tr>
+                                <tr>
+                                    <td>Alfreds Futterkiste</td>
+                                    <td>Maria Anders</td>
+                                    <td>Germany</td>
+                                </tr>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-12 col-md-6">
+                <div class="windowfy">
+                    <div class="window">
+                        <div class="title-bar">
+                        <div class="title-bar-text">Upcoming Fixtures</div>
+                        <div class="title-bar-controls">
+                            <button aria-label="Minimize"></button>
+                            <button aria-label="Maximize"></button>
+                            <button aria-label="Close"></button>
+                        </div>
+                        </div>
+                        <div class="window-body">
+                            <table>
+                                {% for fixture in getFixtures %}
+                                    <tr>
+                                        <td>{{ fixture['home'] }} vs. {{ fixture['away'] }}</td>
+                                    </tr>
+                                {% endfor %}
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-6 col-md-4">
+                <div class="card">
+                    <h5 class="card-header">{{ managerStats['managername'] }}</h5>
+                    <div class="sticker">
+                        <div class="avatar-holder">
+                            <img class="card-img-top" src="https://avatars.dicebear.com/v2/male/{{ managerStats['managername'] }}.svg" alt="Card image cap">
+                        </div>
+                    </div>
+                    <h5 class="card-header">{{ managerStats['clubname'] }}</h5> 
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item">Age: {{ managerStats['managerage'] }}</li>
+                        <li class="list-group-item">Board Confidence: {{ managerStats['confidence'] }}</li>
+                        <li class="list-group-item">Club Rank: {{ managerStats['clubrank'] }}</li>
+                        <li class="list-group-item">Club Rating: {{ managerStats['clubovr'] }}</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="col-6 col-md-4">
+                <div class="card">
+                    <h5 class="card-header">{{ starAtt['playername'] }}</h5>
+                    <div class="sticker">
+                        <div class="avatar-holder">
+                            <img src="static/img/flags/{{ starAtt['flag'] }}" style="width:30px; height=20px; margin:5px;"/>
+                            <img class="card-img-top" src="https://avatars.dicebear.com/v2/male/{{ starAtt['playername'] }}.svg" alt="Card image cap">
+                        </div>
+                    </div>
+                    <h5 class="card-header">{{ managerStats['clubname'] }}</h5> 
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item">Age: {{ starAtt['playerage'] }}</li>
+                        <li class="list-group-item">Nationality: {{ starAtt['nationality'] }}</li>
+                        <li class="list-group-item">Value: {{ starAtt['value'] }}</li>
+                        <li class="list-group-item">Rating: {{ starAtt['ovr'] }}</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="col-6 col-md-4">
+                <div class="card">
+                    <h5 class="card-header">{{ starDef['playername'] }}</h5>
+                    <div class="sticker">
+                        <div class="avatar-holder">
+                            <img src="static/img/flags/{{ starDef['flag'] }}" style="width:30px; height=20px; margin:5px;"/>
+                            <img class="card-img-top" src="https://avatars.dicebear.com/v2/male/{{ starDef['playername'] }}.svg" alt="Card image cap">
+                        </div>
+                    </div>
+                    <h5 class="card-header">{{ managerStats['clubname'] }}</h5> 
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item">Age: {{ starDef['playerage'] }}</li>
+                        <li class="list-group-item">Nationality: {{ starDef['nationality'] }}</li>
+                        <li class="list-group-item">Value: {{ starDef['value'] }}</li>
+                        <li class="list-group-item">Rating: {{ starDef['ovr'] }}</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <table class="table table-hover">
+                <thead class="thead-dark">
+                    <tr>
+                        <th>Nat</th>
+                        <th>Player</th>
+                        <th>Pos</th>
+                        <th>Age</th>
+                        <th>Ovr</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for player in getPlayers %}
+                        <tr class="clickRow" data-toggle="modal" data-target="#exampleModal" data-player="{{ player['name'] }}" onclick="showPlayer({{ player }})">
+                            
+                            <td><img src="static/img/flags/{{ player['flag'] }}" width="30px" height="20px"/></td>
+                            <td>{{ player["pos"] }}</td>
+                            <td>{{ player["name"] }}</td>
+                            <td>{{ player["age"] }}</td>
+                            <td>{{ player["ovr"] }}</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        <div class="modal fade" id="exampleModal" tabindex="-1" role="dialog" aria-labelledby="playerCard" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-body">
+                    <div class="container-fluid">
+                        <div class="row">
+                            <div class="col-12">
+                                <h5 class="card-header" id="name"></h5>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-12">
+                                <div class="sticker">
+                                    <div class="avatar-holder">
+                                        <img id="plNat" src="" style="width:30px; height=20px; margin:5px;"/>
+                                        <img class="card-img-top" id="plImg" src="https://avatars.dicebear.com/v2/male/placeholder.svg" alt="Card image">
+                                    </div>
+                                </div>
+                            </div>
+                        </div> 
+                        <div class="row">
+                            <div class="col-12">
+                                <h5 class="card-header">{{ managerStats['clubname'] }}</h5>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-12">
+                                <table class="playerAttTable">
+                                    <tbody>
+                                        <tr>
+                                            <td>Age: </td><td id="age"></td>
+                                            <td>Nationality</td></ts><td id="nat"></td>
+                                        </tr>
+                                        <tr>
+                                            <td>Potential: </td><td id="pot"></td>
+                                            <td>Value</td><td id="val"></td>
+                                        </tr>
+                                        <tr>
+                                            <td>Speed:</td><td id="spd"></td>
+                                            <td>Strength:</td><td id="str"></td>
+                                        </tr>
+                                        <tr></tr>
+                                            <td>Handsomeness: </td><td id="han"></td>
+                                            <td>Overall: </td><td id="rat"></td>
+                                        </tr> 
+                                    </tbody>
+                                </table>      
+                            </div>
+                        </div> 
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script>
+        function showPlayer(data) {
+            $("#plImg").attr("src",`https://avatars.dicebear.com/v2/male/${data['name']}.svg`);
+            $("#plNat").attr("src",`static/img/flags/${data['flag']}`);
+            $(document).find('#name').text(`${data['name']} — ${data['pos']}`);
+            $(document).find('#age').text(`${data['age']}`);
+            $(document).find('#nat').text(`${data['nationality']}`);
+            $(document).find('#val').text(`£${data['value']}M`);
+            $(document).find('#rat').text(`${data['ovr']}`);
+            $(document).find('#spd').text(`${data['speed']}`);
+            $(document).find('#str').text(`${data['strength']}`);
+            $(document).find('#pot').text(`${data['potential']}`);
+            $(document).find('#han').text(`${data['handsomeness']}`);
+        }
+        /*
+        $('#exampleModal').on('show.bs.modal', function (event) {
+            var row = $(event.relatedTarget) // Button that triggered the modal
+            var player= row.data('player')
+            var modal = $(this)
+            modal.find('#name').text(player)       
+        })
+        */
+    </script>
+{% endblock %}

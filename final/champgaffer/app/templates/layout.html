@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+
+<html lang="en">
+
+    <head>
+
+        <!-- Required meta tags -->
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+        <!-- Styles n that -->
+        <link href="/static/css/main.css" rel="stylesheet">
+
+        <!-- https://favicon.io/emoji-favicons/soccer-ball/ -->
+        <link rel="apple-touch-icon" sizes="180x180" href="static/img/fav/apple-touch-icon.png">
+        <link rel="icon" type="image/png" sizes="32x32" href="static/img/fav/favicon-32x32.png">
+        <link rel="icon" type="image/png" sizes="16x16" href="static/img/fav/favicon-16x16.png">
+        <link rel="manifest" href="/static/img/fav/site.webmanifest">
+
+        <!-- icons from fontawesome -->    
+        <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.8.2/css/all.css" integrity="sha384-oS3vJWv+0UjzBfQzYUhtDYW+Pj2yciDJxpsK1OYPAYjqT085Qq/1cq5FLXAZQ7Ay" crossorigin="anonymous"/>
+
+        <script src="https://code.jquery.com/jquery-3.4.1.slim.min.js" integrity="sha384-J6qa4849blE2+poT4WnyKhv5vZF5SrPo0iEjwBvKU7imGFAV0wwj1yYfoRSJoZ+n" crossorigin="anonymous"></script>
+        <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js" integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo" crossorigin="anonymous"></script>
+        <script type = "text/javascript" src="/static/js/lib/bootstrap/bootstrap.min.js"></script>
+
+        <title>ChampGaffer: {% block title %}{% endblock %}</title>
+
+    </head>
+    <body>
+
+        <nav class="navbar navbar-expand-md navbar-dark bg-dark">
+            <a class="navbar-brand" href="/"><span class="code"> <i class="fas fa-trophy"></i>&nbsp&nbsp</span> <span id="logo">ChampGaffer</span><span class="code"> &nbsp&nbsp<i class="fas fa-trophy"></i> </span></a>
+            <button aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation" class="navbar-toggler" data-target="#navbar" data-toggle="collapse" type="button">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbar">
+                {% if session.id %}
+                    <ul class="navbar-nav mr-auto mt-2">
+                        <li class="nav-item"><a class="nav-link" href="/">Office.</a></li>
+                        <li class="nav-item"><a class="nav-link" href="/transfers">Transfers.</a></li>
+                        <li class="nav-item"><a class="nav-link" href="/matchday">Matchday.</a></li>
+                        <li class="nav-item"><a class="nav-link" href="/tables">Tables.</a></li>
+                        <li class="nav-item"><a class="nav-link" href="/history">History.</a></li>
+                    </ul>
+                    <ul class="navbar-nav ml-auto mt-2">
+                        <li class="nav-item"><a class="nav-link" href="/logout"><span>Log Out</span><span class="code"> &nbsp>> </span></a></li>
+                    </ul>
+                {% else %}
+                    <ul class="navbar-nav ml-auto mt-2">
+                        <li class="nav-item"><a class="nav-link" href="/signup"><span class="code">  ^&nbsp^&nbsp&nbsp </span><span>Sign Up.</span></a></li>
+                        <li class="nav-item"><a class="nav-link" href="/login"><span class="code"> >>&nbsp </span><span>Log In.</span></a></li>
+                    </ul>
+                {% endif %}
+            </div>
+        </nav>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+            <header>
+                {% for category, message in messages %}
+                <div class="alert {{ category }} border text-center" role="alert">
+                    {{ message }}
+                </div>
+                {% endfor %}
+            </header>
+            {% endif %}
+        {% endwith %}
+        <main class="container p-5">
+            {% block main %}{% endblock %}
+        </main>
+        <footer class="small text-center text-muted">
+            Add acknowledgements here if required
+        </footer>
+    </body>
+</html>
