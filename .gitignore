@@ -48,8 +48,8 @@ __pycache__/
 .Python
 lib/
 lib64/
-.installed.cfg
-.pyvenv.cfg
+bin/
+*.cfg
 *.egg
 MANIFEST
 
