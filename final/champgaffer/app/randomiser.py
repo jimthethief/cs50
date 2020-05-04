@@ -120,7 +120,6 @@ Teams = {
     "Free": {"club_id": 21, "rank": 0, "primary-color": "white", "secondary-color": "black", "ovr": choices(attribute, free)[0], "formation": "10-10-10", "manager": nameFaker(choices(nations, nationWeights)[0]['nat_code']), "desc": "This player is available on a free.", "attendance": 0, "capacity": 0, "rival": 0}
 }
 
-
 def makePlayer(pos, team):
     player = dict.fromkeys(['player_id', 'club_id', 'clubname', 'name', 'nationality', 'nat_code', 'flag', 'pos'])
     player["club_id"] = Teams[team]['club_id']
@@ -205,6 +204,7 @@ def roundRobin(teams):
     schedule = firstMeet + secondMeet
 
     return schedule
+
 
 
 

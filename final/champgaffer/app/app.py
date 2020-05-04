@@ -67,7 +67,7 @@ def office():
         "budget": getManager[0]['budget'],
         "clubrank": getManager[0]['rank'],
         "clubovr": getManager[0]['ovr'],
-        "season": getManager[0]['season'],
+        "season": getManager[0]['current_season'] - getManager[0]['season'],
         "primary": getManager[0]['primary_colour'],
         "secondary": getManager[0]['secondary_colour']
     }
@@ -90,7 +90,7 @@ def office():
         "ovr": starAtt[0]['MAX(ovr)']
     }
 
-    email = str(session['managerStats']['managername'] + "@" + session['managerStats']['clubname'] + ".co.uk").lower().replace(" ", "")
+    session['email'] = str(session['managerStats']['managername'] + "@" + session['managerStats']['clubname'] + ".co.uk").lower().replace(" ", "")
 
     return render_template('index.html',
                            getPlayers=session['getPlayers'],
@@ -98,7 +98,7 @@ def office():
                            managerStats=session['managerStats'],
                            starAtt=session['starAtt'],
                            starDef=session['starDef'],
-                           email=email)
+                           email=session['email'])
 
 
 @app.route("/login", methods=["GET", "POST"])
@@ -188,8 +188,9 @@ def signup():
 
         # hash password and save user to database
         phash = generate_password_hash(password)
-        db.execute("INSERT INTO managers (username, hash, name, club_id, club_name, year) VALUES (?, ?, ?, 20, ?, ?);", 
-                   username, phash, name, clubname, date.today().year)
+        thisYear = date.today().year
+        db.execute("INSERT INTO managers (username, hash, name, club_id, club_name, season, current_season) VALUES (?, ?, ?, 20, ?, ?, ?);", 
+                   username, phash, name, clubname, thisYear, thisYear )
 
         # rember logged in user
         session["id"] = cur[0]["id"]
@@ -204,7 +205,7 @@ def signup():
         generateClubAttributes(session["id"], getClubs)
         
         # generate season 1 fixtures using helper function
-        generateFixtures(session["id"], session["club_name"], date.today().year)
+        generateFixtures(session["id"], session["club_name"], thisYear)
         
         # Redirect user to home page
         flash('Your sign-up was successful. Welcome aboard!', 'alert-success')
