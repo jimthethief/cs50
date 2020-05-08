@@ -167,20 +167,35 @@
 }
 .windowfy .window-body {
   margin: var(--element-spacing);
+  text-align: left;
 }
 .windowfy table {
   font-family: arial, sans-serif;
   width: 100%;
+  margin-top: 15px;
+}
+.windowfy table .fixtures {
   text-align: center;
 }
 .windowfy td,
 .windowfy th {
   border: 1px solid #dddddd;
-  text-align: center;
   padding: 8px;
 }
 .windowfy tr:nth-child(even) {
   background-color: #dddddd;
+}
+.windowfy .eBrand {
+  font-family: Arial, Helvetica, sans-serif;
+  text-align: left;
+  display: inline;
+  vertical-align: middle;
+}
+.windowfy .eBrand .red {
+  color: #d51100;
+}
+.windowfy .eBrand .blue {
+  color: #3d8eb8;
 }
 .windowfy fieldset {
   border: none;

@@ -1,0 +1,218 @@
+{% extends "layout.html" %}
+
+{% block title %}
+    Transfers.
+{% endblock %}
+
+{% block main %}
+<div class="container">
+    <div class="row justify-content-start">
+        <h4>Transfer Funds: £{{ funds }}m</h4>
+    </div>
+    <div class="row justify-content-end">
+        <form class="form-inline" action="/transfers" name="search" method="post">
+                <div class="form-group mb-2">
+                    <input autocomplete="off" autofocus class="form-control" name="name_search" placeholder="Player name..." type="text">
+                </div>
+                <div class="form-group mb-2">
+                    <select class="form-control" name="club_search">
+                        <option selected value="">All Clubs</option>
+                        {% for club in getClubs %}
+                            <option value="{{ club['club_name'] }}">{{ club['club_name'] }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="form-group mb-2">
+                    <select class="form-control" name="pos_search">
+                        <option selected value="">Any position</option>
+                        <option value="GK">GK</option>
+                        <option value="DEF">DEF</option>
+                        <option value="MID">MID</option>
+                        <option value="ATT">ATT</option>
+                    </select>
+                </div>
+                <div class="form-group mb-2">
+                    <input autocomplete="off" class="form-control" min="1" max="20" name="ovr_search" placeholder="Min Ovr..." type="number">
+                </div>
+                <div class="form-group mb-2">
+                    <select class="form-control" name="val_search">
+                        <option selected value="40">Max Value...</option>
+                        <option value="30">£30m</option>
+                        <option value="20">£20m</option>
+                        <option value="15">£15m</option>
+                        <option value="10">£10m</option>
+                        <option value="7">£7m</option>
+                        <option value="5">£5m</option>
+                    </select>
+                </div>
+                <input class="btn btn-primary mb-2" name="search" type="submit" value="Search">
+                <a class="btn btn-primary mb-2" href="/transfers" role="button">Reset</a>
+        </form>
+    </div>
+    <div class="row">
+        <table class="table table-hover">
+            <thead class="thead-dark">
+                <tr>
+                    <th>Nat</th>
+                    <th>Pos</th>
+                    <th>Player/Club</th>
+                    <th>Age</th>
+                    <th>Ovr</th>
+                    <th>Val £</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for player in getPlayers %}
+                    <tr class="clickRow" data-toggle="modal" data-target="#playerModal" data-player="{{ player }}">
+                        
+                        <td><img src="static/img/flags/{{ player['flag'] }}" width="30px" height="20px"/></td>
+                        <td>{{ player["pos"] }}</td>
+                        <td>{{ player["name"] }} ({{ player["club_name"] }})</td>
+                        <td>{{ player["age"] }}</td>
+                        <td>{{ player["ovr"] }}</td>
+                        <td>£{{ player["value"] }}m</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+<div class="modal fade" id="playerModal" tabindex="-1" role="dialog" aria-labelledby="playerCard" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-body">
+                <div class="container-fluid">
+                    <div class="row">
+                        <div class="col-12">
+                            <h5 class="card-header" id="name"></h5>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="sticker">
+                                <div class="avatar-holder">
+                                    <img id="plNat" src="" style="width:30px; height=20px; margin:5px;"/>
+                                    <img class="card-img-top" id="plImg" src="https://avatars.dicebear.com/v2/male/placeholder.svg" alt="Card image">
+                                </div>
+                            </div>
+                        </div>
+                    </div> 
+                    <div class="row">
+                        <div class="col-12">
+                            <h5 class="card-header" id="club"></h5>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-12">
+                            <table class="playerAttTable">
+                                <tbody>
+                                    <tr>
+                                        <td>Age: </td><td id="age"></td>
+                                        <td>Nationality</td></ts><td id="nat"></td>
+                                    </tr>
+                                    <tr>
+                                        <td>Potential: </td><td id="pot"></td>
+                                        <td>Value</td><td id="val"></td>
+                                    </tr>
+                                    <tr>
+                                        <td>Speed:</td><td id="spd"></td>
+                                        <td>Strength:</td><td id="str"></td>
+                                    </tr>
+                                    <tr></tr>
+                                        <td>Handsomeness: </td><td id="han"></td>
+                                        <td>Overall: </td><td id="rat"></td>
+                                    </tr>
+                                </tbody>
+                            </table>     
+                        </div>
+                    </div> 
+                </div>
+            </div>
+            <div class="modal-footer">
+                <div class="container">
+                    <div class="row">
+                        <div class="col-6 d-flex align-items-center">
+                            <p class="p-2" id="cost"></p>
+                        </div>
+                        <div class="col-6">
+                            <button type="button" class="btn btn-secondary modclick" data-dismiss="modal">Close</button>
+                            <button type="button" class="btn btn-primary modclick" id="buy">Buy Player</button>
+                        </div>
+                    </div>
+                </div>
+            </div>   
+        </div>    
+    </div>
+</div>
+<script>
+
+function submitForm() {
+  return confirm('Do you really want to submit the form?');
+}
+
+function postObj(uri, id, words) {
+        "use strict";
+        var form, input;
+
+        function yep() {
+            if (confirm(`${words}`) == false) {
+                form.reset();
+                return false;
+            }
+            else {
+                form.submit();
+                form.reset();
+                return true;
+            }
+        };
+
+        form = document.createElement("form");
+        form.method = "post";
+        form.action = uri;
+        form.setAttribute("id", "buyform");
+        input = document.createElement("input");
+        input.setAttribute("name", "buy");
+        input.setAttribute("value", id);
+        form.appendChild(input);
+        document.body.appendChild(form); 
+        form.onsubmit(yep());
+};
+
+$('#playerModal').on('show.bs.modal', function (event) {
+    var player = $(event.relatedTarget)
+    var deets = player.data('player').replace(/['']+/g, '"');
+    
+    deets = JSON.parse(deets);
+
+    var msg;
+
+    if (deets['club_name'] === "Free Agents") {
+        deets["cost"] = (deets['value'] * 0.1).toFixed(2)
+        msg = `Sign ${deets['name']}? He's a free agent but he's requesting a signing on fee of £${deets["cost"]}m.`
+    }
+    else {
+        deets["cost"] = deets['value']
+        msg = `Place an offer of £${deets["cost"]}m for ${deets['name']}?`
+    }
+
+    $('head').append(`<style>#club, #name, #cost, .modclick{background: ${deets['primary_colour']}; color: ${deets['secondary_colour']};} .sticker::before{background-image: linear-gradient(to bottom right, ${deets['primary_colour']}, ${deets['secondary_colour']});background-size: cover;}</style>`);
+    $("#plImg").attr("src",`https://avatars.dicebear.com/v2/male/${deets['name']}.svg`);
+    $("#plNat").attr("src",`static/img/flags/${deets['flag']}`);
+    $(document).find('#club').text(deets['club_name']);
+    $(document).find('#name').text(`${deets['name']} — ${deets['pos']}`);
+    $(document).find('#age').text(`${deets['age']}`);
+    $(document).find('#nat').text(`${deets['nationality']}`);
+    $(document).find('#val').text(`£${deets['value']}m`);
+    $(document).find('#rat').text(`${deets['ovr']}`);
+    $(document).find('#spd').text(`${deets['speed']}`);
+    $(document).find('#str').text(`${deets['strength']}`);
+    $(document).find('#pot').text(`${deets['potential']}`);
+    $(document).find('#han').text(`${deets['handsomeness']}`);
+    $(document).find('#cost').text(`Transfer cost: £${deets['cost']}m`);
+
+    $('#buy').click(function () {
+        postObj('/buy', deets['player_id'], msg)
+    });
+});
+</script>
+{% endblock %}

@@ -79,53 +79,31 @@ def generateFixtures(user, clubname, season):
             db.execute("INSERT INTO fixtures (manager_id, season, week, home, away) VALUES (?, ?, ?, ?, ?);",
                        user, season, matchday, home, away)
 
-
-def getUserSquad(user):
-    playerList = db.execute("SELECT * FROM players JOIN player_attr ON players.player_id = player_attr.player_id WHERE manager_id = ? AND club_id = 20;",
-                            user)
-    return playerList
-
-
-def getUserPlayer(user):
-    player = choices(getUserSquad(user))
-    return player
-
-
-def getRandomClub(user):
-    clubs = db.execute("SELECT * FROM clubs JOIN club_attr ON clubs.club_id = club_attr.club_id WHERE manager_id = ? AND clubs.club_id < 20;",
-                       user)
-    return choices(clubs)
     
 # returns news story from news.getStory function 7/10 times - specific news stories can be selected via second argument
-def gotNews(user, default=0):
+def gotNews(user, news_id=0, pl_id=0):
 
     anyNews = randint(0,10)
     
-    if anyNews > 3:
+    if anyNews > 3 or news_id != 0:
         userClub = db.execute("SELECT * FROM managers JOIN club_attr ON managers.id = club_attr.manager_id WHERE managers.id = ? AND club_attr.club_id = 20;",
                           user)
     
         currentNews = db.execute("SELECT * FROM news JOIN managers on news.manager_id = managers.id WHERE id = ?",
                             user)
 
-        message = getStory(userClub, default)
+        message = getStory(userClub, news_id, pl_id)
 
         # if news item has already been delivered in current season, generate another until no match (max 20 loops)
         loopCount = 0
-        while any(d.get('Mail_id', None) == message['Mail_id'] for d in currentNews):
+        while any(d.get('Mail_id', None) == message['Mail_id'] for d in currentNews) and message['Mail_id'] > 6:
             if loopCount > 20:
                 break
             else:
-                message = getStory(userClub, default)
+                message = getStory(userClub, news_id, pl_id)
                 loopCount += 1
-
+        
         db.execute("INSERT INTO news (manager_id, player_id, club_id, message_id, sender, subject, body) VALUES (?, ?, ?, ?, ?, ?, ?);",
                        user, message['Player_id'], message['Club_id'], message['Mail_id'], message['Sender'], message['Subject'], message['Body'])
-            
     else:
         return False
-    
-
-gotNews(3, 1)
-
-

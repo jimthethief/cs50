@@ -1,7 +1,7 @@
 {% extends "layout.html" %}
 
 {% block title %}
-    Index
+    Office.
 {% endblock %}
 
 {% block main %}
@@ -31,7 +31,7 @@
                 <div class="windowfy">
                     <div class="window">
                         <div class="title-bar">
-                        <div class="title-bar-text">MeMail — {{ email }}</div>
+                        <div class="title-bar-text">Me-Mail — {{ email }}</div>
                         <div class="title-bar-controls">
                             <button aria-label="Minimize"></button>
                             <button aria-label="Maximize"></button>
@@ -39,18 +39,28 @@
                         </div>
                         </div>
                         <div class="window-body">
-                            <p>{{ test }}</p>
+                            <h3 id="result"></h3>
+                            <h3 class="eBrand">&#x1F4EC <h5 class="eBrand">Me<span class="red">-</span>m</span><span class="blue">@</span>il</h5></h3>
                             <table>
                                 <tr>
-                                    <th>Company</th>
-                                    <th>Contact</th>
-                                    <th>Country</th>
+                                    <th><i class="fas fa-inbox"></i></th>
+                                    <th>From:</th>
+                                    <th>Subject:</th>
                                 </tr>
-                                <tr>
-                                    <td>Alfreds Futterkiste</td>
-                                    <td>Maria Anders</td>
-                                    <td>Germany</td>
-                                </tr>
+                                {% for mail in getEmails %}
+                                    {% if mail['read'] == 0 %}
+                                        {% set weight = "bold" %}
+                                        {% set icon = "fa-envelope" %}
+                                    {% else %}
+                                        {% set weight = "normal" %}
+                                        {% set icon = "fa-envelope-open" %}
+                                    {% endif %}
+                                    <tr class="clickRow" id="eRow{{ mail['news_id'] }}" style="font-weight: {{ weight }};" data-toggle="modal" data-target="#newsModal" data-email="{{ mail }}" onclick="showEmail({{ mail }})" tr>
+                                        <td id="ricon{{ mail['news_id'] }}"><i class='far {{ icon }}'></i></td>
+                                        <td>{{ mail['sender'] }}</td>
+                                        <td>{{ mail['subject'] }}</td>
+                                    </tr>
+                                {% endfor %}
                             </table>
                         </div>
                     </div>
@@ -68,9 +78,10 @@
                         </div>
                         </div>
                         <div class="window-body">
+                            <h3 class="eBrand">&#x1F4C5 <h5 class="eBrand">Fixtures</h5></h3>
                             <table>
                                 {% for fixture in getFixtures %}
-                                    <tr>
+                                    <tr class="fixtures">
                                         <td>{{ fixture['home'] }} vs. {{ fixture['away'] }}</td>
                                     </tr>
                                 {% endfor %}
@@ -140,15 +151,15 @@
                 <thead class="thead-dark">
                     <tr>
                         <th>Nat</th>
-                        <th>Player</th>
                         <th>Pos</th>
+                        <th>Player</th>
                         <th>Age</th>
                         <th>Ovr</th>
                     </tr>
                 </thead>
                 <tbody>
                     {% for player in getPlayers %}
-                        <tr class="clickRow" data-toggle="modal" data-target="#exampleModal" data-player="{{ player['name'] }}" onclick="showPlayer({{ player }})">
+                        <tr class="clickRow" data-toggle="modal" data-target="#playerModal" data-player="{{ player['name'] }}" onclick="showPlayer({{ player }})">
                             
                             <td><img src="static/img/flags/{{ player['flag'] }}" width="30px" height="20px"/></td>
                             <td>{{ player["pos"] }}</td>
@@ -160,60 +171,143 @@
                 </tbody>
             </table>
         </div>
-        <div class="modal fade" id="exampleModal" tabindex="-1" role="dialog" aria-labelledby="playerCard" aria-hidden="true">
-            <div class="modal-dialog modal-dialog-centered">
+    </div>
+    <div class="modal fade" id="newsModal" tabindex="-1" role="dialog" aria-labelledby="newsItem" aria-hidden="true" data-backdrop="static" data-keyboard="false">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
                 <div class="modal-body">
-                    <div class="container-fluid">
-                        <div class="row">
-                            <div class="col-12">
-                                <h5 class="card-header" id="name"></h5>
+                    <div class="windowfy">
+                        <div class="window">
+                            <div class="title-bar">
+                            <div class="title-bar-text" id="eTitle"></div>
+                            <div class="title-bar-controls">
+                                <button aria-label="Minimize"></button>
+                                <button aria-label="Maximize"></button>
+                                <button aria-label="Close" data-dismiss="modal"></button>
+                            </div>
+                            </div>
+                            <div class="window-body">
+                                <table>
+                                    <tr>
+                                        <td>From: </td><td id="from"></td>
+                                    </tr>
+                                    <tr>
+                                        <td>To: </td><td id="to">{{ email }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Subject: </td><td id="subject"></td>
+                                    </tr>
+                                    <tr>
+                                        <td colspan="2" id="body" style="white-space: pre-line"></td>
+                                    </tr>
+                                </table>
+                                <button data-dismiss="modal" aria-label="Close" id="closeMail">Close</button>
                             </div>
                         </div>
-                        <div class="row">
-                            <div class="col-12">
-                                <div class="sticker">
-                                    <div class="avatar-holder">
-                                        <img id="plNat" src="" style="width:30px; height=20px; margin:5px;"/>
-                                        <img class="card-img-top" id="plImg" src="https://avatars.dicebear.com/v2/male/placeholder.svg" alt="Card image">
-                                    </div>
-                                </div>
-                            </div>
-                        </div> 
-                        <div class="row">
-                            <div class="col-12">
-                                <h5 class="card-header">{{ managerStats['clubname'] }}</h5>
-                            </div>
-                        </div>
-                        <div class="row">
-                            <div class="col-12">
-                                <table class="playerAttTable">
-                                    <tbody>
-                                        <tr>
-                                            <td>Age: </td><td id="age"></td>
-                                            <td>Nationality</td></ts><td id="nat"></td>
-                                        </tr>
-                                        <tr>
-                                            <td>Potential: </td><td id="pot"></td>
-                                            <td>Value</td><td id="val"></td>
-                                        </tr>
-                                        <tr>
-                                            <td>Speed:</td><td id="spd"></td>
-                                            <td>Strength:</td><td id="str"></td>
-                                        </tr>
-                                        <tr></tr>
-                                            <td>Handsomeness: </td><td id="han"></td>
-                                            <td>Overall: </td><td id="rat"></td>
-                                        </tr> 
-                                    </tbody>
-                                </table>      
-                            </div>
-                        </div> 
                     </div>
                 </div>
             </div>
         </div>
     </div>
+    <div class="modal fade" id="playerModal" tabindex="-1" role="dialog" aria-labelledby="playerCard" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-body">
+                <div class="container-fluid">
+                    <div class="row">
+                        <div class="col-12">
+                            <h5 class="card-header" id="name"></h5>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="sticker">
+                                <div class="avatar-holder">
+                                    <img id="plNat" src="" style="width:30px; height=20px; margin:5px;"/>
+                                    <img class="card-img-top" id="plImg" src="https://avatars.dicebear.com/v2/male/placeholder.svg" alt="Card image">
+                                </div>
+                            </div>
+                        </div>
+                    </div> 
+                    <div class="row">
+                        <div class="col-12">
+                            <h5 class="card-header">{{ managerStats['clubname'] }}</h5>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-12">
+                            <table class="playerAttTable">
+                                <tbody>
+                                    <tr>
+                                        <td>Age: </td><td id="age"></td>
+                                        <td>Nationality</td></ts><td id="nat"></td>
+                                    </tr>
+                                    <tr>
+                                        <td>Potential: </td><td id="pot"></td>
+                                        <td>Value</td><td id="val"></td>
+                                    </tr>
+                                    <tr>
+                                        <td>Speed:</td><td id="spd"></td>
+                                        <td>Strength:</td><td id="str"></td>
+                                    </tr>
+                                    <tr></tr>
+                                        <td>Handsomeness: </td><td id="han"></td>
+                                        <td>Overall: </td><td id="rat"></td>
+                                    </tr> 
+                                </tbody>
+                            </table>     
+                        </div>
+                    </div> 
+                </div>
+            </div>
+        </div>
+    </div>
     <script>
+        function showEmail(obj) {
+            console.log("function called");
+            console.log("data");
+
+            var sender = obj['sender'];
+            var subject = obj['subject'];
+            var read = obj['read'];
+
+            $(document).find('#eTitle').text(`${sender} — ${subject}`);
+            $(document).find('#from').text(sender);
+            $(document).find('#subject').text(subject);
+            $(document).find('#body').text(obj['body']);
+
+            if (read == 0) {
+                form = document.createElement("form");
+                form.method = "post";
+                form.action = "/read";
+                form.setAttribute("id", "read");
+                input = document.createElement("input");
+                input.setAttribute("name", "rstatus");
+                input.setAttribute("value", 1);
+                form.appendChild(input);
+                input2 = document.createElement("input");
+                input2.setAttribute("name", "mail_id");
+                input2.setAttribute("value", obj["news_id"]);
+                form.appendChild(input2)
+                document.body.appendChild(form); 
+                $.ajax({
+                    url : "/read",
+                    data : $('#read').serialize(),
+                    type : 'POST',
+                    success: function(response) {
+                        console.log(response);
+                        read = 1;
+                        document.getElementById(`ricon${obj['news_id']}`).innerHTML = "<i class='far fa-envelope-open'>";
+                        document.getElementById(`eRow${obj['news_id']}`).style.fontWeight = "normal";
+                        console.log(read)
+                    },
+                    error: function(error) {
+                        console.log(error);
+                    }
+                 });
+                console.log("You've come this far")
+            }
+        }
+
         function showPlayer(data) {
             $("#plImg").attr("src",`https://avatars.dicebear.com/v2/male/${data['name']}.svg`);
             $("#plNat").attr("src",`static/img/flags/${data['flag']}`);
@@ -227,13 +321,6 @@
             $(document).find('#pot').text(`${data['potential']}`);
             $(document).find('#han').text(`${data['handsomeness']}`);
         }
-        /*
-        $('#exampleModal').on('show.bs.modal', function (event) {
-            var row = $(event.relatedTarget) // Button that triggered the modal
-            var player= row.data('player')
-            var modal = $(this)
-            modal.find('#name').text(player)       
-        })
-        */
+
     </script>
 {% endblock %}
