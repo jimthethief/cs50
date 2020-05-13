@@ -144,39 +144,15 @@
         </div>    
     </div>
 </div>
+<form action="/buy" id="buyform" method="post" style="display: none;">
+    <input name="pl_id" id="pl_id">
+    <input name="cl_id" id="cl_id">
+    <input name="cl_name" id="cl_name">
+    <input name="cl_rank" id="cl_rank">
+    <input name="pl_cost" id="pl_cost">
+    <input name="pl_pos" id="pl_pos">
+</form>
 <script>
-
-function submitForm() {
-  return confirm('Do you really want to submit the form?');
-}
-
-function postObj(uri, id, words) {
-        "use strict";
-        var form, input;
-
-        function yep() {
-            if (confirm(`${words}`) == false) {
-                form.reset();
-                return false;
-            }
-            else {
-                form.submit();
-                form.reset();
-                return true;
-            }
-        };
-
-        form = document.createElement("form");
-        form.method = "post";
-        form.action = uri;
-        form.setAttribute("id", "buyform");
-        input = document.createElement("input");
-        input.setAttribute("name", "buy");
-        input.setAttribute("value", id);
-        form.appendChild(input);
-        document.body.appendChild(form); 
-        form.onsubmit(yep());
-};
 
 $('#playerModal').on('show.bs.modal', function (event) {
     var player = $(event.relatedTarget)
@@ -188,11 +164,11 @@ $('#playerModal').on('show.bs.modal', function (event) {
 
     if (deets['club_name'] === "Free Agents") {
         deets["cost"] = (deets['value'] * 0.1).toFixed(2)
-        msg = `Sign ${deets['name']}? He's a free agent but he's requesting a signing on fee of £${deets["cost"]}m.`
+        msg = `Sign ${deets['name']}? He's a free agent but he's requesting a signing on fee of £${deets['cost']}m.`
     }
     else {
         deets["cost"] = deets['value']
-        msg = `Place an offer of £${deets["cost"]}m for ${deets['name']}?`
+        msg = `Place an offer of £${deets['cost']}m for ${deets['name']}?`
     }
 
     $('head').append(`<style>#club, #name, #cost, .modclick{background: ${deets['primary_colour']}; color: ${deets['secondary_colour']};} .sticker::before{background-image: linear-gradient(to bottom right, ${deets['primary_colour']}, ${deets['secondary_colour']});background-size: cover;}</style>`);
@@ -210,9 +186,27 @@ $('#playerModal').on('show.bs.modal', function (event) {
     $(document).find('#han').text(`${deets['handsomeness']}`);
     $(document).find('#cost').text(`Transfer cost: £${deets['cost']}m`);
 
-    $('#buy').click(function () {
-        postObj('/buy', deets['player_id'], msg)
+    document.getElementsByName("pl_id")[0].value = deets['player_id'];
+    document.getElementsByName("cl_id")[0].value = deets['club_id'];
+    document.getElementsByName("cl_name")[0].value = deets['club_name'];
+    document.getElementsByName("cl_rank")[0].value = deets['rank'];
+    document.getElementsByName("pl_cost")[0].value = deets['cost'];
+    document.getElementsByName("pl_pos")[0].value = deets['pos'];
+
+    var form = document.getElementById('buyform');
+
+    // Unbind any previously cancelled events and fire confirmation message
+    $(document).off('click', '#buy').on('click', '#buy', function (event) {
+            if (!confirm(msg)) {
+                return false;
+            }
+            else {
+                form.submit();
+                return true;
+            }
     });
 });
+
+
 </script>
 {% endblock %}

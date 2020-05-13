@@ -1,7 +1,8 @@
-import randomiser
 from datetime import date
+from random import randint
 from helpers import apology, login_required
 from generator import generateClubAttributes, generateFixtures, gotNews
+from randomiser import makePlayer, makeAttr
 from cs50 import SQL
 from flask import Flask, flash, jsonify, redirect, render_template, request, session
 from flask_session import Session
@@ -128,7 +129,7 @@ def transfers():
                                   session["id"])[0]
 
     if request.method == "GET":
-        session["getPlayers"] = db.execute("SELECT players.player_id, name, nationality, flag, pos, clubs.club_id, manager_id, age, speed, strength, technique, potential, handsomeness, ovr, value, club_name, primary_colour, secondary_colour FROM players JOIN player_attr ON players.player_id = player_attr.player_id JOIN clubs on player_attr.club_id = clubs.club_id WHERE player_attr.manager_id = ? AND clubs.club_id != 20 ORDER BY value DESC;", 
+        session["getPlayers"] = db.execute("SELECT players.player_id, name, nationality, flag, pos, clubs.club_id, player_attr.manager_id, age, speed, strength, technique, potential, handsomeness, player_attr.ovr, value, club_name, primary_colour, secondary_colour, club_attr.rank FROM players JOIN player_attr ON players.player_id = player_attr.player_id JOIN clubs on player_attr.club_id = clubs.club_id JOIN club_attr ON player_attr.club_id = club_attr.club_id WHERE player_attr.manager_id = ? AND clubs.club_id != 20 ORDER BY value DESC;", 
                                            session["id"])
         
         return render_template('transfers.html',
@@ -147,7 +148,7 @@ def transfers():
             session["ovr_search"] = int(request.form.get("ovr_search"))
 
         
-        session["getPlayers"] = db.execute("SELECT players.player_id, name, nationality, flag, pos, clubs.club_id, manager_id, age, speed, strength, technique, potential, handsomeness, ovr, value, club_name, primary_colour, secondary_colour FROM players JOIN player_attr ON players.player_id = player_attr.player_id JOIN clubs on player_attr.club_id = clubs.club_id WHERE player_attr.manager_id = :user AND name LIKE :name AND club_name LIKE :club AND pos LIKE :pos AND ovr > :ovr AND value < :val AND clubs.club_id != 20 ORDER BY value DESC;",
+        session["getPlayers"] = db.execute("SELECT players.player_id, name, nationality, flag, pos, clubs.club_id, player_attr.manager_id, age, speed, strength, technique, potential, handsomeness, player_attr.ovr, value, club_name, primary_colour, secondary_colour, club_attr.rank FROM players JOIN player_attr ON players.player_id = player_attr.player_id JOIN clubs on player_attr.club_id = clubs.club_id JOIN club_attr ON player_attr.club_id = club_attr.club_id WHERE player_attr.manager_id = :user AND name LIKE :name AND club_name LIKE :club AND pos LIKE :pos AND player_attr.ovr > :ovr AND value < :val AND clubs.club_id != 20 ORDER BY value DESC;",
                                            user=session["id"], name=('%{}%'.format(session['name_search']),), 
                                            club=('%{}%'.format(session['club_search']),), pos=('%{}%'.format(session['pos_search']),), 
                                            ovr=session['ovr_search'], val=session['val_search'])
@@ -171,44 +172,106 @@ def transfers():
 def buy():
     """Make player purchase"""
 
-    session["player"] = int(request.form.get("buy"))
+    session["pl_id"] = int(request.form.get("pl_id"))
+    session["pl_cost"] = float(request.form.get("pl_cost"))
+    session["cl_id"] = int(request.form.get("cl_id"))
+    session["cl_rank"] = int(float(request.form.get("cl_rank")))
+    session["pl_pos"] = request.form.get("pl_pos")
+    session["cl_name"] = request.form.get("cl_name")
+    
     session["userClub"] = db.execute("SELECT * FROM managers JOIN club_attr ON managers.club_id = club_attr.club_id WHERE id = ?;",
                                    session["id"])[0]
 
-    session["player_deets"] = db.execute("SELECT * FROM player_attr JOIN club_attr ON player_attr.club_id = club_attr.club_id WHERE player_attr.manager_id = ? AND player_id = ?;",
-                                         session["id"], session["player"])[0]
-
-    if session["player_deets"]["club_id"] == 21:
-        session["cost"] = session["player_deets"]["value"] * 0.1
+    if session["cl_id"] == 21:
         session["news_id"] = 2.5
     else:
-        session["cost"] = session["player_deets"]["value"]
         session["news_id"] = 2
     
     # check that user has enough funds for purchase
-    if session["cost"] > session["userClub"]['budget']:
+    if session["pl_cost"] > session["userClub"]['budget']:
         flash(f"Sorry, we don\'t currently have the funds to buy that player - Glenn.", 'alert-danger')
         return redirect('/transfers')
 
     # check player rank to see if they'd be interested in move
-    if (session['userClub']['rank'] - session['player_deets']['rank']) > 5:
-        gotNews(session['id'], 3, session['player'])
-        flash(f"It doesn\'t look like that player is interested - check your emails for details.", 'alert-danger')
-        return redirect('/transfers')
+    session['rankDiff'] = session['userClub']['rank'] - session["cl_rank"]
+    if session['rankDiff'] > 5:
+        if session['rankDiff'] < 8 and randint(1,10) > session['rankDiff'] + 1:
+            pass
+        else:
+            gotNews(session['id'], 3, session['pl_id'])
+            flash(f"It doesn\'t look like that player is interested - check your emails for details.", 'alert-danger')
+            return redirect('/transfers')
 
-    # if user has funds and offer accepted - send success email, update player info and budget
-
-    session["newBudget"] = round((session["userClub"]['budget'] - session["cost"]),2)
+    # if user has funds and offer accepted generate new player for selling club (if not a free agent & squad < 11)
+    if session["cl_id"] != 21:
+        session['playerCount'] = db.execute("SELECT count(*) FROM player_attr WHERE club_id = ? AND manager_id = ?;", 
+                                            session["cl_id"], session["id"])[0]
+        if session['playerCount']['count(*)'] < 11:
+            session["newPlayer"] = makePlayer(session["pl_pos"], session["cl_name"])
+            session["pl_stats"] = makeAttr("cl_name")
+            session["getManagers"] = db.execute("SELECT * FROM managers;")
+            for manager in session["getManagers"]:
+                db.execute("INSERT INTO player_attr (manager_id, player_id, club_id, age, speed, strength, technique, potential, handsomeness, ovr, value) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);", 
+                            manager['id'], session["newPlayer"]['player_id'], session["cl_id"], session["pl_stats"]['age'], session["pl_stats"]['speed'], session["pl_stats"]['strength'], 
+                            session["pl_stats"]['technique'], session["pl_stats"]['potential'], session["pl_stats"]['handsomeness'], session["pl_stats"]['ovr'], session["pl_stats"]['value'])
+    
+    # send success email, update player info and budget
+    session["newBudget"] = round((session["userClub"]['budget'] - session["pl_cost"]),2)
     db.execute("UPDATE managers SET budget = ? WHERE id = ?",
                 session["newBudget"], session["id"])
 
-    gotNews(session['id'], session['news_id'], session['player'])
+    gotNews(session['id'], session['news_id'], session['pl_id'])
     db.execute("UPDATE player_attr SET club_id = 20 WHERE player_id = ? AND manager_id = ?;",
-                session['player'], session["id"])
+                session["pl_id"], session["id"])
     
     #  redirect to office page and display success message confirming transfer
     flash('Purchase successful. Your updated transfer budget is £' + str(session["newBudget"]) + 'm.',
             'alert-success')
+    return redirect('/')
+
+@app.route("/sell", methods=["POST"])
+@login_required
+def sell():
+    """Make player sale"""
+    session["pl_id"] = int(request.form.get("pl_id"))
+    session["cl_id"] = int(request.form.get("cl_id"))
+
+    if session["cl_id"] == 21:
+        session["pl_cost"] = float(request.form.get("pl_cost"))
+        session["cl_name"] = request.form.get("cl_name")
+    else:
+        session["pl_cost"] = db.execute("SELECT value FROM player_attr WHERE player_id = ? and manager_id = ?;",
+                                        session['pl_id'], session['id'])[0]['value']
+        session["cl_name"] = db.execute("SELECT club_name FROM clubs WHERE club_id = ?;",
+                                        session['cl_id'])[0]['club_name']
+
+    session["userClub"] = db.execute("SELECT * FROM managers JOIN club_attr ON managers.club_id = club_attr.club_id WHERE id = ?;",
+                                     session["id"])[0]
+
+    session['playerCount'] = db.execute("SELECT count(*) FROM player_attr WHERE club_id = 20 AND manager_id = ?;", 
+                                         session["id"])[0]['count(*)']
+    
+    if session['playerCount'] < 11:
+        #  squad too small - redirect to office page and display error message
+        flash(f"Sorry, we don't have a big enough sqaud to let that player go - Glenn.", 'alert-danger')
+        return redirect('/')
+
+    # carry out transfer and send confirmation message
+    session["newBudget"] = round((session["userClub"]['budget'] + session["pl_cost"]),2)
+    db.execute("UPDATE managers SET budget = ? WHERE id = ?",
+                session["newBudget"], session["id"])
+
+    db.execute("UPDATE player_attr SET club_id = ? WHERE player_id = ? AND manager_id = ?;",
+                session["cl_id"], session["pl_id"], session["id"])
+
+    #  redirect to office page and display success message confirming player release
+    if session["cl_id"] == 21:
+        flash('Player released. Your updated transfer budget is £' + str(session["newBudget"]) + 'm.',
+              'alert-success')
+    else:
+        flash('Player sold to ' + session['cl_name'] + '. Your updated transfer budget is £' + str(session["newBudget"]) + 'm.',
+              'alert-success')
+    
     return redirect('/')
 
 
@@ -320,29 +383,9 @@ def signup():
 
         #generate welcome email via news.py
         gotNews(session["id"], 1)
-
         
         # Redirect user to home page
         flash('Your sign-up was successful. Welcome aboard!', 'alert-success')
         return redirect("/")
 
     return apology("Oops, something went awry", 403)
-
-"""
-@app.route("/playercard", methods=["POST"])
-def player():
-
-    return render_template("playercard.html")
-
-@app.route("/player", methods=["POST"])
-def player():
-    # get player id to search db request.form.get
-    # store player attr in data to push to player.html
-    playerid = request.form.get("playerid") #start / end
-
-    data = []
-    for i in range(4):
-        data.append(f"Attribute #{i}")
-
-    return jsonify(data)
-"""

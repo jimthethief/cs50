@@ -65,6 +65,7 @@ def getStory(clubDict, news_id, pl_id):
 
         if item > 3 and item < 12:
             player = getUserPlayer(userId)[0]
+            stats = f"{player['name']}: Age: {player['age']} // Ovr: {player['ovr']} // Value: {player['value']}\n"
             Story['Player_id'] = player['player_id']
 
         if item == 2:
@@ -104,18 +105,18 @@ def getStory(clubDict, news_id, pl_id):
 
         elif item == 4: 
             Story['Sender'] = club['manager']
-            Story['Subject'] = "Transfer Offer"
-            Story['Body'] = f"Hi {firstName},\n\nI like the look of {player['name']} and want to recruit him for {club['club_name']}. We're a bit hard up at the minute but I've pushed the chairman hard and we can stretch to £{round(playerValue(player['ovr'], player['handsomeness'], player['potential']) * uniform(0.5,0.7),1)}M. What do you think?\n\nRegards,\n{club['manager']}"
+            Story['Subject'] = f"Transfer Offer - {player['name']}"
+            Story['Body'] = f"Hi {firstName},\n\nI like the look of {player['name']} and want to recruit him for {club['club_name']}. We're a bit hard up at the minute but I've pushed the chairman hard and we can stretch to £{round(playerValue(player['ovr'], player['handsomeness'], player['potential']) * uniform(0.5,0.7),1)}M. What do you think?\n\nRegards,\n{club['manager']}\n\n{stats}"
         
         elif item == 5:
             Story['Sender'] = club['manager']
-            Story['Subject'] = "Transfer Offer"
-            Story['Body'] = f"Hi {firstName},\n\nWe're looking to rebuild the squad at {club['club_name']} and I think that {player['name']} would be a great addition for us. Is he available? The chairman's being generous with this one so we can offer up to £{round(playerValue(player['ovr'], player['handsomeness'], player['potential']) * uniform(1.2, 1.8), 1)}m.\n\nThanks,\n{club['manager']}"
+            Story['Subject'] = f"Transfer Offer - {player['name']}"
+            Story['Body'] = f"Hi {firstName},\n\nWe're looking to rebuild the squad at {club['club_name']} and I think that {player['name']} would be a great addition for us. Is he available? The chairman's being generous with this one so we can offer up to £{round(playerValue(player['ovr'], player['handsomeness'], player['potential']) * uniform(1.2, 1.8), 1)}m.\n\nThanks,\n{club['manager']}\n\n{stats}"
         
         elif item == 6:
             Story['Sender'] = club['manager']
-            Story['Subject'] = "Transfer Offer"
-            Story['Body'] = f"Hi {firstName},\n\nI've been admiring {player['name']} for a while now and would like to bring him to {club['club_name']}. How does £{playerValue(player['ovr'], player['handsomeness'], player['potential'])}M sound?\n\nThanks,\n{club['manager']}"
+            Story['Subject'] = f"Transfer Offer - {player['name']}"
+            Story['Body'] = f"Hi {firstName},\n\nI've been admiring {player['name']} for a while now and would like to bring him to {club['club_name']}. How does £{playerValue(player['ovr'], player['handsomeness'], player['potential'])}M sound?\n\nThanks,\n{club['manager']}\n\n{stats}"
         
         elif item == 7:
             Story['Sender'] = "The Chairman"

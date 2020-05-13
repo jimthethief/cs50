@@ -6,7 +6,7 @@
 
 {% block main %}
     <style>
-        .card-header, 
+        .card-header, .modclick,
         .table-hover tbody tr:hover,
         .table-hover tbody tr:hover {
             background: {{ managerStats['primary'] }}; 
@@ -55,7 +55,7 @@
                                         {% set weight = "normal" %}
                                         {% set icon = "fa-envelope-open" %}
                                     {% endif %}
-                                    <tr class="clickRow" id="eRow{{ mail['news_id'] }}" style="font-weight: {{ weight }};" data-toggle="modal" data-target="#newsModal" data-email="{{ mail }}" onclick="showEmail({{ mail }})" tr>
+                                    <tr class="clickRow" id="eRow{{ mail['news_id'] }}" style="font-weight: {{ weight }};" data-toggle="modal" data-target="#newsModal" onclick="showEmail({{ mail }})" tr>
                                         <td id="ricon{{ mail['news_id'] }}"><i class='far {{ icon }}'></i></td>
                                         <td>{{ mail['sender'] }}</td>
                                         <td>{{ mail['subject'] }}</td>
@@ -159,7 +159,7 @@
                 </thead>
                 <tbody>
                     {% for player in getPlayers %}
-                        <tr class="clickRow" data-toggle="modal" data-target="#playerModal" data-player="{{ player['name'] }}" onclick="showPlayer({{ player }})">
+                        <tr class="clickRow" data-toggle="modal" data-target="#playerModal" onclick="showPlayer({{ player }})">
                             
                             <td><img src="static/img/flags/{{ player['flag'] }}" width="30px" height="20px"/></td>
                             <td>{{ player["pos"] }}</td>
@@ -201,7 +201,15 @@
                                         <td colspan="2" id="body" style="white-space: pre-line"></td>
                                     </tr>
                                 </table>
-                                <button data-dismiss="modal" aria-label="Close" id="closeMail">Close</button>
+                                <div class=field-row>
+                                    <p id="offertext" style="font-weight: bold; display: none;">
+                                        This transfer offer has expired.
+                                    </p>
+                                </div>
+                                <div class=field-row>
+                                    <button data-dismiss="modal" aria-label="Close" id="closeMail">Close</button>
+                                    <button id="sell" style="display: none;">Sell</button>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -211,75 +219,132 @@
     </div>
     <div class="modal fade" id="playerModal" tabindex="-1" role="dialog" aria-labelledby="playerCard" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-body">
-                <div class="container-fluid">
-                    <div class="row">
-                        <div class="col-12">
-                            <h5 class="card-header" id="name"></h5>
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div class="col-12">
-                            <div class="sticker">
-                                <div class="avatar-holder">
-                                    <img id="plNat" src="" style="width:30px; height=20px; margin:5px;"/>
-                                    <img class="card-img-top" id="plImg" src="https://avatars.dicebear.com/v2/male/placeholder.svg" alt="Card image">
-                                </div>
+            <div class="modal-content">
+                <div class="modal-body">
+                    <div class="container-fluid">
+                        <div class="row">
+                            <div class="col-12">
+                                <h5 class="card-header" id="name"></h5>
                             </div>
                         </div>
-                    </div> 
-                    <div class="row">
-                        <div class="col-12">
-                            <h5 class="card-header">{{ managerStats['clubname'] }}</h5>
+                        <div class="row">
+                            <div class="col-12">
+                                <div class="sticker">
+                                    <div class="avatar-holder">
+                                        <img id="plNat" src="" style="width:30px; height=20px; margin:5px;"/>
+                                        <img class="card-img-top" id="plImg" src="https://avatars.dicebear.com/v2/male/placeholder.svg" alt="Card image">
+                                    </div>
+                                </div>
+                            </div>
+                        </div> 
+                        <div class="row">
+                            <div class="col-12">
+                                <h5 class="card-header">{{ managerStats['clubname'] }}</h5>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-12">
+                                <table class="playerAttTable">
+                                    <tbody>
+                                        <tr>
+                                            <td>Age: </td><td id="age"></td>
+                                            <td>Nationality</td></ts><td id="nat"></td>
+                                        </tr>
+                                        <tr>
+                                            <td>Potential: </td><td id="pot"></td>
+                                            <td>Value</td><td id="val"></td>
+                                        </tr>
+                                        <tr>
+                                            <td>Speed:</td><td id="spd"></td>
+                                            <td>Strength:</td><td id="str"></td>
+                                        </tr>
+                                        <tr></tr>
+                                            <td>Handsomeness: </td><td id="han"></td>
+                                            <td>Overall: </td><td id="rat"></td>
+                                        </tr> 
+                                    </tbody>
+                                </table>     
+                            </div>
+                        </div> 
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <div class="container">
+                        <div class="row">
+                            <div class="col-6">
+                                <button type="button" class="btn btn-secondary modclick" data-dismiss="modal">Close</button>
+                                <button type="button" class="btn btn-primary modclick" id="release">Release Player</button>
+                            </div>
                         </div>
                     </div>
-                    <div class="row">
-                        <div class="col-12">
-                            <table class="playerAttTable">
-                                <tbody>
-                                    <tr>
-                                        <td>Age: </td><td id="age"></td>
-                                        <td>Nationality</td></ts><td id="nat"></td>
-                                    </tr>
-                                    <tr>
-                                        <td>Potential: </td><td id="pot"></td>
-                                        <td>Value</td><td id="val"></td>
-                                    </tr>
-                                    <tr>
-                                        <td>Speed:</td><td id="spd"></td>
-                                        <td>Strength:</td><td id="str"></td>
-                                    </tr>
-                                    <tr></tr>
-                                        <td>Handsomeness: </td><td id="han"></td>
-                                        <td>Overall: </td><td id="rat"></td>
-                                    </tr> 
-                                </tbody>
-                            </table>     
-                        </div>
-                    </div> 
                 </div>
             </div>
         </div>
     </div>
+    <form action="/sell" id="releaseform" method="post" style="display: none;">
+        <input name="pl_id" id="pl_id">
+        <input name="cl_id" id="cl_id">
+        <input name="cl_name" id="cl_name">
+        <input name="pl_cost" id="pl_cost">
+    </form>
+    <form action="/sell" id="sellform" method="post" style="display: none;">
+        <input name="pl_id" id="pl_id">
+        <input name="cl_id" id="cl_id">
+    </form>
     <script>
         function showEmail(obj) {
-            console.log("function called");
-            console.log("data");
 
             var sender = obj['sender'];
             var subject = obj['subject'];
             var read = obj['read'];
+            var msg_id = obj['message_id'];
 
             $(document).find('#eTitle').text(`${sender} — ${subject}`);
             $(document).find('#from').text(sender);
             $(document).find('#subject').text(subject);
             $(document).find('#body').text(obj['body']);
 
+            $('#newsModal').on('show.bs.modal', function (event) {
+
+                if (msg_id > 3 && msg_id < 7) {
+                    if (read === 0) {
+                        document.getElementById("sell").style.display = "inline-block";
+                        document.getElementById("closeMail").textContent = "Reject";
+                        document.getElementsByName("pl_id")[1].value = obj['player_id'];
+                        document.getElementsByName("cl_id")[1].value = obj['club_id'];
+
+                        var sellform = document.getElementById('sellform');
+
+                        // Unbind any previously cancelled events and fire confirmation message
+                        $(document).off('click', '#sell').on('click', '#sell', function (event) {
+                                if (!confirm("Are you sure you want to sell this player?")) {
+                                    sellform.reset();
+                                    return false;
+                                }
+                                else {
+                                    sellform.submit();
+                                    return true;
+                                }
+                        });
+                    }
+                else {
+                        document.getElementById("sell").style.display = "none";
+                        document.getElementById("offertext").style.display = "inline-block";
+                    }
+                }
+            else {
+                    document.getElementById("sell").style.display = "none";
+                    document.getElementById("offertext").style.display = "none";
+                    document.getElementById("closeMail").textContent = "Cancel";
+                }
+            });
+
             if (read == 0) {
                 form = document.createElement("form");
                 form.method = "post";
                 form.action = "/read";
                 form.setAttribute("id", "read");
+                form.setAttribute("style", "display:none;")
                 input = document.createElement("input");
                 input.setAttribute("name", "rstatus");
                 input.setAttribute("value", 1);
@@ -288,7 +353,7 @@
                 input2.setAttribute("name", "mail_id");
                 input2.setAttribute("value", obj["news_id"]);
                 form.appendChild(input2)
-                document.body.appendChild(form); 
+                document.body.appendChild(form)
                 $.ajax({
                     url : "/read",
                     data : $('#read').serialize(),
@@ -298,13 +363,12 @@
                         read = 1;
                         document.getElementById(`ricon${obj['news_id']}`).innerHTML = "<i class='far fa-envelope-open'>";
                         document.getElementById(`eRow${obj['news_id']}`).style.fontWeight = "normal";
-                        console.log(read)
+                        form.remove();
                     },
                     error: function(error) {
                         console.log(error);
                     }
                  });
-                console.log("You've come this far")
             }
         }
 
@@ -320,6 +384,30 @@
             $(document).find('#str').text(`${data['strength']}`);
             $(document).find('#pot').text(`${data['potential']}`);
             $(document).find('#han').text(`${data['handsomeness']}`);
+
+            $('#playerModal').on('show.bs.modal', function (event) {
+
+                var cost = (data['value'] * 0.1).toFixed(2);
+                var msg = `Release ${data['name']}? £${cost}m will be added to the transfer budget in saved wages.`;
+
+                document.getElementsByName("pl_id")[0].value = data['player_id'];
+                document.getElementsByName("cl_id")[0].value = 21;
+                document.getElementsByName("cl_name")[0].value = "Free Agents";
+                document.getElementsByName("pl_cost")[0].value = cost;
+
+                var releaseform = document.getElementById('releaseform');
+
+                // Unbind any previously cancelled events and fire confirmation message
+                $(document).off('click', '#release').on('click', '#release', function (event) {
+                        if (!confirm(msg)) {
+                            return false;
+                        }
+                        else {
+                            releaseform.submit();
+                            return true;
+                        }
+                });
+            });
         }
 
     </script>
