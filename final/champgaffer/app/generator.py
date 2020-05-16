@@ -39,9 +39,9 @@ def generatePlayerAttributes(user, players):
 def generateClubAttributes(user, clubs):
     for row in clubs:
             club = row['club_name']
-            db.execute("INSERT INTO club_attr (manager_id, club_id, rank, ovr, formation, attendance) VALUES (?, ?, ?, ?, ?, ?);", 
+            db.execute("INSERT INTO club_attr (manager_id, club_id, rank, ovr, formation, attendance, pos_track, pos) VALUES (?, ?, ?, ?, ?, ?, ?, ?);", 
                         user, row['club_id'], Teams[club]['rank'], Teams[club]['ovr'],
-                        Teams[club]['formation'], Teams[club]['attendance'])
+                        Teams[club]['formation'], Teams[club]['attendance'], Teams[club]['rank'], Teams[club]['rank'])
 
 
 def generateFixtures(user, clubname, season):

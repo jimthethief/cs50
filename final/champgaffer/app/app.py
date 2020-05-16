@@ -106,18 +106,6 @@ def office():
                            starDef=session['starDef'],
                            email=session['email'])
 
-@app.route("/read", methods=["POST"])
-@login_required
-def read():
-    """ Mark email as read """
-    session['rstatus'] = int(request.form['rstatus'])
-    session['mail_id'] = int(request.form['mail_id'])
-    if session['rstatus'] > 0:
-        db.execute("UPDATE news SET read = ? WHERE news_id = ?",
-                    session['rstatus'], session['mail_id'])
-        return jsonify(rstatus=session["rstatus"],
-                       mail_id=session["mail_id"])
-
 
 @app.route("/transfers", methods=["GET", "POST"])
 @login_required
@@ -129,7 +117,7 @@ def transfers():
                                   session["id"])[0]
 
     if request.method == "GET":
-        session["getPlayers"] = db.execute("SELECT players.player_id, name, nationality, flag, pos, clubs.club_id, player_attr.manager_id, age, speed, strength, technique, potential, handsomeness, player_attr.ovr, value, club_name, primary_colour, secondary_colour, club_attr.rank FROM players JOIN player_attr ON players.player_id = player_attr.player_id JOIN clubs on player_attr.club_id = clubs.club_id JOIN club_attr ON player_attr.club_id = club_attr.club_id WHERE player_attr.manager_id = ? AND clubs.club_id != 20 ORDER BY value DESC;", 
+        session["getPlayers"] = db.execute("SELECT players.player_id, name, nationality, flag, players.pos, clubs.club_id, player_attr.manager_id, age, speed, strength, technique, potential, handsomeness, player_attr.ovr, value, club_name, primary_colour, secondary_colour, club_attr.rank FROM players JOIN player_attr ON players.player_id = player_attr.player_id JOIN clubs on player_attr.club_id = clubs.club_id JOIN club_attr ON player_attr.club_id = club_attr.club_id WHERE player_attr.manager_id = ? AND clubs.club_id != 20 ORDER BY value DESC;", 
                                            session["id"])
         
         return render_template('transfers.html',
@@ -148,7 +136,7 @@ def transfers():
             session["ovr_search"] = int(request.form.get("ovr_search"))
 
         
-        session["getPlayers"] = db.execute("SELECT players.player_id, name, nationality, flag, pos, clubs.club_id, player_attr.manager_id, age, speed, strength, technique, potential, handsomeness, player_attr.ovr, value, club_name, primary_colour, secondary_colour, club_attr.rank FROM players JOIN player_attr ON players.player_id = player_attr.player_id JOIN clubs on player_attr.club_id = clubs.club_id JOIN club_attr ON player_attr.club_id = club_attr.club_id WHERE player_attr.manager_id = :user AND name LIKE :name AND club_name LIKE :club AND pos LIKE :pos AND player_attr.ovr > :ovr AND value < :val AND clubs.club_id != 20 ORDER BY value DESC;",
+        session["getPlayers"] = db.execute("SELECT players.player_id, name, nationality, flag, players.pos, clubs.club_id, player_attr.manager_id, age, speed, strength, technique, potential, handsomeness, player_attr.ovr, value, club_name, primary_colour, secondary_colour, club_attr.rank FROM players JOIN player_attr ON players.player_id = player_attr.player_id JOIN clubs on player_attr.club_id = clubs.club_id JOIN club_attr ON player_attr.club_id = club_attr.club_id WHERE player_attr.manager_id = :user AND name LIKE :name AND club_name LIKE :club AND players.pos LIKE :pos AND player_attr.ovr > :ovr AND value < :val AND clubs.club_id != 20 ORDER BY value DESC;",
                                            user=session["id"], name=('%{}%'.format(session['name_search']),), 
                                            club=('%{}%'.format(session['club_search']),), pos=('%{}%'.format(session['pos_search']),), 
                                            ovr=session['ovr_search'], val=session['val_search'])
@@ -166,6 +154,50 @@ def transfers():
     
     return apology("Oops, something went awry", 403)
 
+
+@app.route("/matchday", methods=["GET", "POST"])
+@login_required
+def matchday():
+    """Select line-up/formation and show opposition"""
+    session["squad"] = db.execute("SELECT * FROM players JOIN player_attr ON players.player_id = player_attr.player_id WHERE player_attr.manager_id = ? AND player_attr.club_id = 20;",
+                                  session["id"])
+
+    session["fixture"] = db.execute("SELECT home, away FROM fixtures JOIN managers ON fixtures.manager_id = managers.id WHERE (managers.id = ? AND week = matchday) AND (home = managers.club_name OR away = managers.club_name);",
+                                     session["id"])[0]
+
+    if session["fixture"]["home"] == session["clubname"]:
+        session["opponent"] = session["fixture"]["away"]
+    else:
+        session["opponent"] = session["fixture"]["home"]
+    
+    session["getOpponent"] = db.execute("SELECT club_name, primary_colour, secondary_colour, attendance, capacity, ovr, formation, pos, clubs.club_id FROM clubs JOIN club_attr ON clubs.club_id = club_attr.club_id WHERE clubs.club_name = ? AND manager_id = ?;",
+                                        session["opponent"], session["id"])[0]
+
+    session["opponentSquad"] = db.execute("SELECT * FROM players JOIN player_attr ON players.player_id = player_attr.player_id WHERE player_attr.manager_id = ? AND player_attr.club_id = ?;",
+                                          session["id"], session["getOpponent"]["club_id"])
+
+    return render_template('matchday.html',
+                            squad=session["squad"],
+                            squadSize=len(session["squad"]),
+                            clubName=session["clubname"],
+                            opponent=session["getOpponent"],
+                            opponentSquad=session["opponentSquad"],
+                            oppSquadSize=len(session["opponentSquad"]))
+
+@app.route("/standings", methods=["GET"])
+@login_required
+def standings():
+    """Display current standings"""
+
+    session["getStandings"] = db.execute("SELECT club_name, rank, pld, gs, ga, (gs - ga) AS gd, pts, pos, pos_track FROM club_attr JOIN clubs on club_attr.club_id = clubs.club_id WHERE club_attr.club_id IN (SELECT rank FROM club_attr WHERE manager_id = ? AND rank < 21) ORDER BY pts DESC, gd DESC, pos ASC;",
+                                         session["id"])
+
+    session["userTeam"] = db.execute("SELECT * FROM managers WHERE id = ?",
+                                     session["id"])[0]['club_name']
+
+    return render_template('standings.html',
+                           getStandings=session["getStandings"],
+                           userTeam=session["userTeam"])
 
 @app.route("/buy", methods=["POST"])
 @login_required
@@ -229,6 +261,7 @@ def buy():
             'alert-success')
     return redirect('/')
 
+
 @app.route("/sell", methods=["POST"])
 @login_required
 def sell():
@@ -275,6 +308,19 @@ def sell():
     return redirect('/')
 
 
+@app.route("/read", methods=["POST"])
+@login_required
+def read():
+    """ Mark email as read """
+    session['rstatus'] = int(request.form['rstatus'])
+    session['mail_id'] = int(request.form['mail_id'])
+    if session['rstatus'] > 0:
+        db.execute("UPDATE news SET read = ? WHERE news_id = ?",
+                    session['rstatus'], session['mail_id'])
+        return jsonify(rstatus=session["rstatus"],
+                       mail_id=session["mail_id"])
+
+
 @app.route("/login", methods=["GET", "POST"])
 def login():
     """Log user in"""
@@ -304,6 +350,7 @@ def login():
 
         # Remember which user has logged in
         session["id"] = rows[0]["id"]
+        session["clubname"] = rows[0]["club_name"]
 
         # Redirect user to home page
         return redirect("/")
@@ -364,7 +411,7 @@ def signup():
         phash = generate_password_hash(password)
         thisYear = date.today().year
         db.execute("INSERT INTO managers (username, hash, name, club_id, club_name, season, current_season) VALUES (?, ?, ?, 20, ?, ?, ?);", 
-                   username, phash, name, clubname, thisYear, thisYear )
+                   username, phash, name, clubname, thisYear, thisYear)
 
         # rember logged in user
         session["id"] = cur[0]["id"]

@@ -14,8 +14,8 @@ main img {
 	max-width: 100%;
 }
 
-.card, .windowfy {
-	margin-bottom: 40px;
+.card, .windowfy, .col-6 {
+	margin-bottom: 60px;
 }
 
 /* W I N D O W S  9 8 */
@@ -214,7 +214,138 @@ main .form-control {
 	border-radius: 4px;
 }
 
+/* M A T C H D A Y */
+
+[draggable] {
+	/* Prevent the text contents of draggable elements from being selectable. */
+	-moz-user-select: none;
+	-khtml-user-select: none;
+	-webkit-user-select: none;
+	user-select: none;
+	-khtml-user-drag: element;
+	-webkit-user-drag: element;
+}
+
+#starters .thead-dark th, 
+.table-hover tbody tr#lineup:hover,
+.table-hover tbody tr#lineup:hover {
+	background-color: #2E86C1;
+	color: #FFC300;
+	border: none;
+}
+
+.drag {
+	cursor: pointer;
+	width: 100%;
+}
+
+#lineup .over, #subs .over {
+	display: inline-block;
+	border: 2px dashed #FFC300;
+	border-radius: 3px;
+}
+
+
+.formation--section {
+	margin-bottom: 2em;
+	
+}
+
+.formation--main {
+	padding: 0.5em;
+	margin: 0 auto;
+	text-align: center;
+	width: 80%;
+	height: 90%;
+}
+.formation--choice {
+	display: grid;
+	grid-gap: 5px;
+	grid-template-columns: repeat(5, 1fr);
+}
+
+.formation--field {
+	background-image: url(/static/img/field.png);
+	background-repeat: no-repeat;	
+	background-size: cover;
+	height: 90%;
+	border-radius: 10px;
+	color: #fff;
+	display: grid;
+	grid-auto-flow: rows;
+	grid-gap: 5px;
+	grid-template-columns: repeat(12, 1fr);
+	grid-template-rows: repeat(4, 1fr);
+	padding: 1em;
+}
+
+.player, .opponent, label {
+align-items: center;
+display: flex;
+flex-direction: column;
+justify-content: center;
+}
+
+.player-goalkeeper {
+grid-column: span 12; 
+}
+
+.player-one, .player-two, .player-three, .player-four, .player-five, .player-six, .player-seven, .player-eight {
+grid-column: span 3;
+}
+
+.player-nine, .player-ten {
+grid-column: span 6;
+}
+
+.plImg, .oppImg {
+	width: 40px;
+}
+
+.plName, .oppName {
+	width: 100%;
+	font-size: x-small;
+}
+
+input[type=radio] {
+visibility: hidden;
+position: absolute;
+}
+
+input[type=radio]:checked+span {
+	background-color: rgba(255, 20, 147, 1);
+	color: #fff;
+	border: 1px dotted #000;
+}
+
+span {
+cursor: pointer;
+position: relative;
+}
+
 /* S T A N D I N G S */
+
+.borderup {
+	border-bottom: 1.5px dashed #0F9D58;
+}
+
+.borderdown {
+	border-bottom: 1.5px dashed #DB4437;
+}
+
+.table-hover tbody tr.promotion:hover
+ {
+	background: rgb(187, 255, 187); 
+	color: #0F9D58;
+	transition: background ease-in 0.2s;
+} 
+
+.table-hover tbody tr.relegation:hover
+ {
+	background: rgb(248, 178, 170); 
+	color: #DB4437;
+	transition: background ease-in 0.2s;
+} 
 
 .fa-caret-up {
 	color: #0F9D58;

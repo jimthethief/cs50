@@ -41,6 +41,12 @@ CREATE TABLE club_attr (manager_id INTEGER NOT NULL,
                         ovr INTEGER NOT NULL,
                         formation TEXT NOT NULL DEFAULT "4-4-2",
                         attendance REAL NOT NULL, 
+                        pld INTEGER NOT NULL DEFAULT 0;
+                        gs INTEGER NOT NULL DEFAULT 0;
+                        ga INTEGER NOT NULL DEFAULT 0;
+                        pts INTEGER NOT NULL DEFAULT 0;
+                        pos INTEGER NOT NULL DEFAULT 0;
+                        pos_track INTEGER NOT NULL DEFAULT 0;
                         FOREIGN KEY (manager_id) REFERENCES managers(id), 
                         FOREIGN KEY (club_id) REFERENCES clubs(club_id));
 
@@ -87,3 +93,11 @@ CREATE TABLE news (news_id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
                    body TEXT NOT NULL,
                    read BOOLEAN NOT NULL CHECK (read IN (0,1)) DEFAULT 0,
                    FOREIGN KEY (manager_id) REFERENCES managers(id));
+
+CREATE TABLE standings (manager_id INTEGER NOT NULL,
+                        club_id INTEGER NOT NULL,
+                        pld INTEGER NOT NULL,
+                        gs INTEGER NOT NULL,
+                        ga INTEGER NOT NULL,
+                        pts INTEGER NOT NULL,
+                        FOREIGN KEY (manager_id) REFERENCES managers(id));

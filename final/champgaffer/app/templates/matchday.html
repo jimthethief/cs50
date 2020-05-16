@@ -1,0 +1,171 @@
+{% extends "layout.html" %}
+
+{% block scripts %}
+    
+{% endblock %}
+
+{% block title %}
+    Matchday.
+{% endblock %}
+
+{% block main %}
+<style>
+    .oppLineup th, 
+    .table-hover tbody tr.oppRow:hover,
+    .table-hover tbody tr.oppRow:hover {
+        border: none;
+        {% if opponent['primary_colour'] == 'white' %}
+        background-color: {{ opponent['secondary_colour']}};
+        color: {{ opponent['primary_colour'] }};
+        {% else %}
+        background-color: {{ opponent['primary']}};
+        color: {{ opponent['secondary'] }};
+        {% endif %}
+    }
+</style>
+<div class="containter">
+    <div class="row">
+        <div class="col-6 col-md-6">
+            <table id="starters" class="table table-hover">
+                <thead class="thead-dark">
+                    <tr>
+                        <th>#</th>
+                        <th>{{ clubName }}</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for i in range(squadSize) %}
+                    {% if i < 11 %}
+                        {% set num = i + 1%}
+                    {% else %}
+                        {% set num = "SUB" %}
+                    {% endif %}
+                    <tr id="lineup">
+                        <td>{{ num }}</td>
+                        <td class="drag" draggable="true"><img src="static/img/flags/{{squad[i]['flag']}}" style="max-width:17px; max-height=10px; margin:5px;"/>{{ squad[i]["pos"] }}: {{ squad[i]["name"] }} ({{ squad[i]['ovr'] }})<input type="hidden" value="{{ squad[i] }}"></td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            <button class="btn-primary" id="#update" onclick="update()">Update lineup</button>
+        </div>
+        <div class="col-6 col-md-6">
+            <table class="table table-hover">
+                <thead class="oppLineup">
+                    <tr>
+                        <th>#</th>
+                        <th>{{ opponent["club_name"] }}</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for i in range(oppSquadSize) %}
+                    {% if i < 11 %}
+                        {% set num = i + 1%}
+                    {% else %}
+                        {% set num = "SUB" %}
+                    {% endif %}
+                    <tr class="oppRow">
+                        <td>{{ num }}</td>
+                        <td><img src="static/img/flags/{{opponentSquad[i]['flag']}}" style="max-width:17px; max-height=10px; margin:5px;"/>{{ opponentSquad[i]["pos"] }}: {{ opponentSquad[i]["name"] }} ({{ opponentSquad[i]['ovr'] }})<input type="hidden" value="{{ opponentSquad[i] }}"></td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-12 col-md-6">
+            <div class="formation--main">
+                <div class="formation--field formation--section">
+                    <div class="player player-ten"><img class="plImg" src=""><p class="plName"></p></div>
+                    <div class="player player-nine"><img class="plImg" src=""><p class="plName"></p></div>
+                    <div class="player player-eight"><img class="plImg" src=""><p class="plName"></p></div>
+                    <div class="player player-seven"><img class="plImg" src=""><p class="plName"></p></div>
+                    <div class="player player-six"><img class="plImg" src=""><p class="plName"></p></div>
+                    <div class="player player-five"><img class="plImg" src=""><p class="plName"></p></div>
+                    <div class="player player-four"><img class="plImg" src=""><p class="plName"></p></div>
+                    <div class="player player-three"><img class="plImg" src=""><p class="plName"></p></div>
+                    <div class="player player-two"><img class="plImg" src=""><p class="plName"></p></div>
+                    <div class="player player-one"><img class="plImg" src=""><p class="plName"></p></div>
+                    <div class="player player-goalkeeper"><img class="plImg" src=""><p class="plName"></p></div>
+                </div>
+                <div class="formation--section">
+                    <p>Choose formation:</p>
+                    <div class="formation--choice">
+                        <label for="442" onClick="check();">
+                            <input checked type="radio" id="442" name="formation">
+                            <span>4-4-2</span>
+                        </label>
+                        <label for="433" onClick="check();">
+                            <input type="radio" id="433" name="formation">
+                            <span>4-3-3</span>
+                        </label>
+                        <label for="451" onClick="check();">
+                            <input type="radio" id="451" name="formation">
+                            <span>4-5-1</span>
+                        </label>
+                        <label for="343" onClick="check();">
+                            <input type="radio" id="343" name="formation">
+                            <span>3-4-3</span>
+                        </label>
+                        <label for="352" onClick="check();">
+                            <input type="radio" id="352" name="formation">
+                            <span>3-5-2</span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-12 col-md-6">
+            <div class="formation--main">
+                <div class="formation--field formation--section">
+                    <div class="opponent player-ten"><img class="oppImg" src=""><p class="oppName"></p></div>
+                    <div class="opponent player-nine"><img class="oppImg" src=""><p class="oppName"></p></div>
+                    <div class="opponent player-eight"><img class="oppImg" src=""><p class="oppName"></p></div>
+                    <div class="opponent player-seven"><img class="oppImg" src=""><p class="oppName"></p></div>
+                    <div class="opponent player-six"><img class="oppImg" src=""><p class="oppName"></p></div>
+                    <div class="opponent player-five"><img class="oppImg" src=""><p class="oppName"></p></div>
+                    <div class="opponent player-four"><img class="oppImg" src=""><p class="oppName"></p></div>
+                    <div class="opponent player-three"><img class="oppImg" src=""><p class="oppName"></p></div>
+                    <div class="opponent player-two"><img class="oppImg" src=""><p class="oppName"></p></div>
+                    <div class="opponent player-one"><img class="oppImg" src=""><p class="oppName"></p></div>
+                    <div class="opponent player-goalkeeper"><img class="oppImg" src=""><p class="oppName"></p></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script type = "text/javascript" src="/static/js/lineup.js"></script>
+<script type = "text/javascript" src="/static/js/formation.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        var oppForm = {{ opponent['formation']|tojson }};
+        var oppPlayers = {{ opponentSquad|tojson }};
+        var count = 10;
+        $('.oppImg').each(function (){
+            $(this).attr("src",`https://avatars.dicebear.com/v2/male/${oppPlayers[count]['name']}.svg`);
+            $(this).next().text(`${count + 1}: ${oppPlayers[count]['name']}`);
+        count--;
+        })
+        opponentShape(oppForm);
+    }, false);
+
+    function update() {
+        var players = [];
+        $('.drag input').each(function(){
+            var starter = JSON.parse($(this).val().replace(/['']+/g, '"'))
+            if (players.length < 11) {
+                players.push(starter)
+            }
+            
+        })
+        var count = 10;
+        $('.plImg').each(function (){
+            $(this).attr("src",`https://avatars.dicebear.com/v2/male/${players[count]['name']}.svg`);
+            $(this).next().text(`${count + 1}: ${players[count]['name']}`);
+        count--;
+        })
+    };
+</script>
+
+{% endblock %}
