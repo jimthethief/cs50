@@ -107,3 +107,6 @@ def gotNews(user, news_id=0, pl_id=0):
                        user, message['Player_id'], message['Club_id'], message['Mail_id'], message['Sender'], message['Subject'], message['Body'])
     else:
         return False
+
+
+

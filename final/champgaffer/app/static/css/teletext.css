@@ -1,0 +1,336 @@
+/* 
+    Gratefully adapted from the Galax Teletext stylesheet: 
+    http://galax.xyz
+    
+    MODE7GX3.TTF font by Galax 2014 - based on ModeSeven, created in 1998 by Andrew Bulhak
+*/
+
+/* Hard reset */
+html,body,div,span,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,
+address,big,cite,code,del,dfn,em,img,ins,kbd,q,s,samp,small,strike,strong,sub,
+sup,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,
+tbody,tfoot,thead,tr,th,td,article,aside,canvas,details,embed,figure,figcaption,
+footer,header,hgroup,menu,nav,output,section,summary,time,audio,video {
+  padding: 0;
+  margin: 0;
+  border: 0;
+  font-smooth: never;
+  -webkit-font-smoothing: none;
+}
+
+html {
+    height: 100vh;
+}
+
+a {
+    text-decoration: none;
+}
+
+/* unvisited link */
+a:link {
+    color: #00ffff;
+}
+
+/* visited link */
+a:visited {
+    color: #00ff00;
+}
+
+/* mouse over link */
+a:hover {
+    color: #ffff00;
+}
+a.yellow:hover, .yellow a:hover {
+    color: #00ff00;
+}
+
+/* selected link */
+a:active {
+    color: #ff0000;
+}
+a.yellow:active, .yellow a:active {
+    color: #ff0000;
+}
+a.red:active, .red a:active {
+    color: #ffff00;
+}
+
+/* flashing class, it's like the 'blink' tag is back */
+.flashing {
+    animation: flashing 1.3s steps(5, start) infinite;
+    -webkit-animation: flashing 1.3s steps(5, start) infinite;
+}
+@keyframes flashing { to { visibility: hidden; } }
+@-webkit-keyframes flashing { to { visibility: hidden; } }
+
+/* concealed text is initially hidden, reveal by modifying class */
+.conceal { opacity: 0; }
+
+.colour0, .black,   a.black,   .black a    {color: #000000;}
+.colour1, .red,     a.red,     .red  a       {color: #ff0000;}
+.colour2, .green,   a.green,   .green  a   {color: #00ff00;}
+.colour3, .yellow,  a.yellow,  .yellow a  {color: #ffff00;}
+.colour4, .blue,    a.blue,    .blue a      {color: #0000ff;}
+.colour5, .magenta, a.magenta, .magenta a{color: #ff00ff;}
+.colour6, .cyan,    a.cyan,    .cyan  a     {color: #00ffff;}
+.colour7, .white,   a.white,   .white  a   {color: #ffffff;}
+
+.colour0bg, .blackbg     {background-color: #000000;}
+.colour1bg, .redbg         {background-color: #ff0000;}
+.colour2bg, .greenbg     {background-color: #00ff00;}
+.colour3bg, .yellowbg   {background-color: #ffff00;}
+.colour4bg, .bluebg       {background-color: #0000ff;}
+.colour5bg, .magentabg {background-color: #ff00ff;}
+.colour6bg, .cyanbg       {background-color: #00ffff;}
+.colour7bg, .whitebg     {background-color: #ffffff;}
+
+@font-face {
+    font-family: Mode7;
+    src: url('MODE7GX3.TTF');
+    unicode-range: U+00-7F;
+}
+
+@font-face {
+    font-family: monospace;
+    src: local('Monospace');
+    font-weight: bold;
+    unicode-range: U+0025-00FF;
+}
+
+body {
+    font-family: Mode7, monospace;
+    width: 55%;
+    padding: 20px;
+    font-size: 20px;
+    font-smooth: never;
+    -webkit-font-smoothing : none;
+    color: #ffffff;
+    background: #000000;
+    line-height: 20px;
+    text-align: center;
+    margin: auto;
+    max-height: 100vh;
+    position: relative;
+}
+
+.teletext {
+    font-smooth: never;
+    -webkit-font-smoothing : none;
+    margin-bottom: 20px;
+}
+
+.pages {
+    width: 100%;
+    display: flex;
+    justify-content: space-around;
+    margin-top: 5%;
+}
+
+.bottom {
+    position: absolute;
+    bottom: 0;
+    width: 100%;
+}
+
+#main, #header, #footer {
+    margin-left:auto;
+    margin-right:auto;
+    margin-bottom: 5%;
+  }
+  
+#header {
+    display: flex;
+    justify-content: space-between;
+    padding: 5px;
+    text-align:right;
+}
+
+#footer {
+    display: flex;
+    justify-content: space-around;
+    padding: 5px;
+    text-align:center;
+    align-self: flex-end;
+
+}
+
+.title{
+    width: 100%;
+    max-height: 70px;
+    display: flex;
+    justify-content: space-around;
+}
+
+.logo {
+    display: flex;
+    justify-content: space-evenly;
+    width: 50%;
+    height: 60px;
+}
+
+.football {
+    width: 90%;
+}
+
+h1 {
+    line-height: 60px;
+    font-size: 60px;
+    text-align: center;
+    letter-spacing: 3px;
+    height: 60px;
+}
+
+.logo h1 {
+    width: 60px;
+}
+
+.football h1 {
+    text-shadow: 0px 5px #000;
+}
+
+.score {
+    margin: 60px 0px;
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    grid-template-rows: auto;
+    grid-gap: 1em;
+}
+
+.score > * {
+    display: flex;
+
+  }
+
+.home, .away {
+    text-transform: uppercase;
+    text-align: left;
+}
+
+.goals {
+    display: block;
+    text-transform: capitalize;
+}
+
+.results {
+    display: flex;
+    justify-content: space-between;
+}
+
+.table table {
+    width: 100%;
+    line-height: 20px;
+    
+}
+
+.table td, .table th {
+    text-align: center;
+}
+
+.table table td.team {
+    text-align: left;
+}
+
+.table tr:nth-child(even) {
+    color: #00ffff;
+}
+
+.table tr:nth-child(odd) {
+    color: white;
+}
+
+#ko, #ko2, #proceed {
+    font-family: Mode7, monospace;
+    text-shadow: 0px 1px #000;
+    border-radius: 0;
+    border: none;
+    font-size: 20px;
+    background-color: #0000ff;
+    color: #ffff00;
+    text-transform: uppercase;
+    text-align: center;
+    margin-left: auto;
+    margin-right: auto;
+    width: auto;
+    padding: 10px;
+
+}
+
+#ko:hover, #ko2:hover, #proceed:hover {
+    cursor: pointer;
+    text-shadow: 0px 3px #000;
+    font-weight: bold;
+}
+  
+@media screen and (max-width: 1000px) {
+    body {
+    width:70%;
+    }
+}
+
+@media screen and (max-width: 800px) {
+    body {
+    width:90%;
+    }
+}
+
+
+
+/*
+
+  .listleft, .listright {
+    float:left;
+    margin:5px 0px;
+  }
+  
+  .listleft {
+    width:90%;
+    color:#00ffff;
+  }
+  
+  .listright {
+    width:10%;
+    text-align:right;
+  }
+
+ h3 {
+    color:#ffff00;
+  }
+  
+  hr {
+    height:6px;
+    width:100%;
+    color:#0000ff;
+    background-color:#0000ff;
+    border:1px solid #0000ff;
+    margin:20px 0px;
+  }
+  
+  #red, #green, #yellow, #blue {
+    width:25%;
+    display:inline;
+    border:0px;
+    float:left;
+    text-align:center;
+  }
+
+
+.doubleText {
+    grid-row: 1;
+    display: flex;
+    flex-direction: column;
+}
+  
+.option {
+    display: grid;
+    grid-template-columns: 10fr auto;
+    padding-bottom: 1px;
+}
+
+.teletext {
+    text-align: left;
+    display: block;
+    font-size: 20px;
+    font-smooth: never;
+    -webkit-font-smoothing : none;
+}
+*/

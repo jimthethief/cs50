@@ -151,6 +151,7 @@
     <input name="cl_rank" id="cl_rank">
     <input name="pl_cost" id="pl_cost">
     <input name="pl_pos" id="pl_pos">
+    <input name="squad_num" id="squad_num">
 </form>
 <script>
 
@@ -192,6 +193,7 @@ $('#playerModal').on('show.bs.modal', function (event) {
     document.getElementsByName("cl_rank")[0].value = deets['rank'];
     document.getElementsByName("pl_cost")[0].value = deets['cost'];
     document.getElementsByName("pl_pos")[0].value = deets['pos'];
+    document.getElementsByName("squad_num")[0].value = deets['squad_num'];
 
     var form = document.getElementById('buyform');
 

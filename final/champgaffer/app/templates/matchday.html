@@ -1,9 +1,5 @@
 {% extends "layout.html" %}
 
-{% block scripts %}
-    
-{% endblock %}
-
 {% block title %}
     Matchday.
 {% endblock %}
@@ -14,19 +10,19 @@
     .table-hover tbody tr.oppRow:hover,
     .table-hover tbody tr.oppRow:hover {
         border: none;
-        {% if opponent['primary_colour'] == 'white' %}
-        background-color: {{ opponent['secondary_colour']}};
-        color: {{ opponent['primary_colour'] }};
+        {% if opponent['primary_colour'] != 'white' %}
+            background-color: {{ opponent['primary_colour']}};
+            color: {{ opponent['secondary_colour'] }};
         {% else %}
-        background-color: {{ opponent['primary']}};
-        color: {{ opponent['secondary'] }};
+            background-color: {{ opponent['secondary_colour']}};
+            color: {{ opponent['primary_colour'] }};
         {% endif %}
     }
 </style>
 <div class="containter">
     <div class="row">
         <div class="col-6 col-md-6">
-            <table id="starters" class="table table-hover">
+            <table id="" class="table table-hover">
                 <thead class="thead-dark">
                     <tr>
                         <th>#</th>
@@ -93,23 +89,23 @@
                     <p>Choose formation:</p>
                     <div class="formation--choice">
                         <label for="442" onClick="check();">
-                            <input checked type="radio" id="442" name="formation">
+                            <input checked type="radio" id="442" name="formation" value="4-4-2">
                             <span>4-4-2</span>
                         </label>
                         <label for="433" onClick="check();">
-                            <input type="radio" id="433" name="formation">
+                            <input type="radio" id="433" name="formation" value="4-3-3">
                             <span>4-3-3</span>
                         </label>
                         <label for="451" onClick="check();">
-                            <input type="radio" id="451" name="formation">
+                            <input type="radio" id="451" name="formation" value="4-5-1">
                             <span>4-5-1</span>
                         </label>
                         <label for="343" onClick="check();">
-                            <input type="radio" id="343" name="formation">
+                            <input type="radio" id="343" name="formation" value="3-4-3">
                             <span>3-4-3</span>
                         </label>
                         <label for="352" onClick="check();">
-                            <input type="radio" id="352" name="formation">
+                            <input type="radio" id="352" name="formation" value="3-5-2">
                             <span>3-5-2</span>
                         </label>
                     </div>
@@ -134,6 +130,11 @@
             </div>
         </div>
     </div>
+    <div class="row justify-content-center">
+        <div class="col-6">
+            <button id="proceed" onclick="toMatch()" type="button" class="btn btn-primary btn-lg btn-block"><span class="code"> <i class="fas fa-futbol"></i>&nbsp&nbsp</span>Proceed<span class="code"> &nbsp&nbsp<i class="fas fa-futbol"></i></span></button>
+        </div>
+    </div>
 </div>
 <script type = "text/javascript" src="/static/js/lineup.js"></script>
 <script type = "text/javascript" src="/static/js/formation.js"></script>
@@ -150,21 +151,53 @@
         opponentShape(oppForm);
     }, false);
 
+    var  starters, squad;
     function update() {
-        var players = [];
+        starters = [];
+        squad = [];
         $('.drag input').each(function(){
-            var starter = JSON.parse($(this).val().replace(/['']+/g, '"'))
-            if (players.length < 11) {
-                players.push(starter)
+            var curPlayer = JSON.parse($(this).val().replace(/['']+/g, '"'))
+            if (starters.length < 11) {
+                starters.push(curPlayer);
+                squad.push(curPlayer);
+            }
+            else {
+                squad.push(curPlayer)
             }
             
         })
         var count = 10;
         $('.plImg').each(function (){
-            $(this).attr("src",`https://avatars.dicebear.com/v2/male/${players[count]['name']}.svg`);
-            $(this).next().text(`${count + 1}: ${players[count]['name']}`);
+            $(this).attr("src",`https://avatars.dicebear.com/v2/male/${starters[count]['name']}.svg`);
+            $(this).next().text(`${count + 1}: ${starters[count]['name']}`);
         count--;
         })
+    };
+
+    function toMatch() {
+        var radios = document.getElementsByName('formation')
+        for(i = 0; i < radios.length; i++) { 
+                if(radios[i].checked) 
+                        var radioCheck = radios[i].value;
+        } 
+
+        var selection = JSON.stringify(squad)
+
+        var form = document.createElement("form");
+        form.method = "post";
+        form.action = "/match";
+        form.setAttribute("id", "toMatch");
+        form.setAttribute("style", "display:none;")
+        var input = document.createElement("input");
+        input.setAttribute("name", "selection");
+        input.setAttribute("value", selection);
+        form.appendChild(input);
+        var input2 = document.createElement("input");
+        input2.setAttribute("name", "shape");
+        input2.setAttribute("value", radioCheck);
+        form.appendChild(input2)
+        document.body.appendChild(form)
+        form.submit();
     };
 </script>
 

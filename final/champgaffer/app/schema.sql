@@ -71,6 +71,7 @@ CREATE TABLE fixtures (fixture_id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
                        week INTEGER NOT NULL,
                        home TEXT NOT NULL,
                        away TEXT NOT NULL,
+                       played BOOLEAN NOT NULL CHECK (played IN (0,1)) DEFAULT 0,
                        FOREIGN KEY(manager_id) REFERENCES managers(id));
 
 CREATE TABLE goals (goal_id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
@@ -79,8 +80,6 @@ CREATE TABLE goals (goal_id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
                     week INTEGER NOT NULL,
                     season INTEGER NOT NULL,
                     FOREIGN KEY (manager_id) REFERENCES managers(id),
-                    FOREIGN KEY (season) REFERENCES fixtures(season),
-                    FOREIGN KEY (week) REFERENCES fixtures(week),
                     FOREIGN KEY (player_id) REFERENCES players(player_id));
 
 CREATE TABLE news (news_id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
@@ -93,11 +92,3 @@ CREATE TABLE news (news_id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
                    body TEXT NOT NULL,
                    read BOOLEAN NOT NULL CHECK (read IN (0,1)) DEFAULT 0,
                    FOREIGN KEY (manager_id) REFERENCES managers(id));
-
-CREATE TABLE standings (manager_id INTEGER NOT NULL,
-                        club_id INTEGER NOT NULL,
-                        pld INTEGER NOT NULL,
-                        gs INTEGER NOT NULL,
-                        ga INTEGER NOT NULL,
-                        pts INTEGER NOT NULL,
-                        FOREIGN KEY (manager_id) REFERENCES managers(id));

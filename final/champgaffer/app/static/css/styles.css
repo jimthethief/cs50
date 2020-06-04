@@ -14,7 +14,7 @@ main img {
 	max-width: 100%;
 }
 
-.card, .windowfy, .col-6 {
+.card, .windowfy, .col-6, .col-12 {
 	margin-bottom: 60px;
 }
 
@@ -247,8 +247,7 @@ main .form-control {
 
 
 .formation--section {
-	margin-bottom: 2em;
-	
+	margin-bottom: 20px;
 }
 
 .formation--main {
@@ -309,7 +308,6 @@ grid-column: span 6;
 
 input[type=radio] {
 visibility: hidden;
-position: absolute;
 }
 
 input[type=radio]:checked+span {
@@ -320,7 +318,24 @@ input[type=radio]:checked+span {
 
 span {
 cursor: pointer;
-position: relative;
+}
+
+.btn-lg {
+	transition: 0.5s ease-out;
+	transition-property: letter-spacing;
+}
+
+.btn-lg:hover {
+	letter-spacing: 2px;
+	transition: 0.5s ease-in;
+	transition-property: letter-spacing;
+}
+
+.btn-lg:hover .code, 
+.btn-lg:hover .code {
+	color: white;
+	transition: 0.5s ease-in;
+	transition-property: color;
 }
 
 /* S T A N D I N G S */

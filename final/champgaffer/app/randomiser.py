@@ -109,7 +109,7 @@ Teams = {
     "North East Stripeys": {"club_id": 10, "rank": 10, "primary-color": "black", "secondary-color": "white", "ovr": randint(12, 14), "formation": "4-5-1", "manager": nameFaker("en_GB"), "desc": "They'd love it if they beat you.", "attendance": 0.6, "capacity": 53000, "rival": 17},
     "Yorkshire Flatcaps": {"club_id": 11, "rank": 11, "primary-color": "white", "secondary-color": "#FFCD00", "ovr": randint(11, 12), "formation": "3-5-2", "manager": nameFaker("es_ES"), "desc": "Ey up, we'll bring more cocker.", "attendance": 0.8, "capacity": 38000, "rival": 6},
     "Norfolk Budgies": {"club_id": 12, "rank": 12, "primary-color": "#fff200", "secondary-color": "#00A650", "ovr": 12, "formation": "4-4-2", "manager": nameFaker(choices(nations, nationWeights)[0]['nat_code']), "desc": "Where are you? Let\'s be \'avin\' you!", "attendance": 0.5, "capacity": 27000, "rival": 20},
-    "Rocky Rovers": {"club_id": 13, "rank": 13, "primary-color": "#009EE0", "secondary-color": "white", "ovr": randint(12, 14), "formation": "4-4-3", "manager": "Tony Mohawk", "desc": "We won the league once, you know.", "attendance": 0.5, "capacity": 32000, "rival": 15},
+    "Rocky Rovers": {"club_id": 13, "rank": 13, "primary-color": "#009EE0", "secondary-color": "white", "ovr": randint(12, 14), "formation": "4-3-3", "manager": "Tony Mohawk", "desc": "We won the league once, you know.", "attendance": 0.5, "capacity": 32000, "rival": 15},
     "Sherwood Goats": {"club_id": 14, "rank": 14, "primary-color": "white", "secondary-color": "#231F20", "ovr": randint(9, 11), "formation": "4-4-2", "manager": nameFaker(choices(nations, nationWeights)[0]['nat_code']), "desc": "Club with a proud history and an indifferent present.", "attendance": 0.4, "capacity": 34000, "rival": 16},
     "Claret Coopers": {"club_id": 15, "rank": 15, "primary-color": "#80BFFF", "secondary-color": "Maroon", "ovr": randint(7, 10), "formation": "4-4-2", "manager": nameFaker("en_GB"), "desc": "Above average height. Manager won\'t stand for anything fancy.", "attendance": 0.4, "capacity": 23000, "rival": 13},
     "Boozy Brewers": {"club_id": 16, "rank": 16, "primary-color": "#FDE92B", "secondary-color": "231F20", "ovr": randint(6, 11), "formation": "4-5-1", "manager": nameFaker(choices(nations, nationWeights)[0]['nat_code']), "desc": "Love a good pint and smell faintly of marmite.", "attendance": 0.3, "capacity": 7000, "rival": 14},
@@ -120,10 +120,11 @@ Teams = {
     "Free Agents": {"club_id": 21, "rank": 21, "primary-color": "white", "secondary-color": "black", "ovr": choices(attribute, free)[0], "formation": "10-10-10", "manager": nameFaker(choices(nations, nationWeights)[0]['nat_code']), "desc": "This player is available on a free.", "attendance": 0, "capacity": 0, "rival": 0}
 }
 
-def makePlayer(pos, team):
-    player = dict.fromkeys(["player_id", "club_id", "clubname", "name", "nationality", "nat_code", "flag", "pos"])
+def makePlayer(pos, num, team):
+    player = dict.fromkeys(["player_id", "club_id", "clubname", "squadnum", "name", "nationality", "nat_code", "flag", "pos"])
     player["club_id"] = Teams[team]['club_id']
     player["clubname"] = team
+    player["squadnum"] = num
     nationinfo = choices(nations, nationWeights)[0]
     player["nationality"] = nationinfo['nationality']
     player["nat_code"] = nationinfo['nat_code']
@@ -137,18 +138,23 @@ def makePlayer(pos, team):
 def makeSquad(team):
     formation = Teams[team]["formation"].split("-")
     squad = []
+    squadnum = 1
     for pos in range(1):
-        gk = makePlayer("GK", team)
+        gk = makePlayer("GK", squadnum, team)
         squad.append(gk)
+        squadnum += 1
     for pos in range(0, int(formation[0])):
-        df = makePlayer("DEF", team)
+        df = makePlayer("DEF", squadnum, team)
         squad.append(df)
+        squadnum += 1
     for pos in range(0, int(formation[1])):
-        md = makePlayer("MID", team)
+        md = makePlayer("MID", squadnum, team)
         squad.append(md)
+        squadnum += 1
     for pos in range(0, int(formation[2])):
-        at = makePlayer("ATT", team)
+        at = makePlayer("ATT", squadnum, team)
         squad.append(at)
+        squadnum += 1
     
     return squad
 
@@ -204,7 +210,5 @@ def roundRobin(teams):
     schedule = firstMeet + secondMeet
 
     return schedule
-
-
 
 

@@ -1,0 +1,147 @@
+<html>
+    <title>Results</title>
+    <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta content="text/html; charset=UTF-8" http-equiv="content-type">
+    <link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/css/teletext.css">
+    <style>
+    .sep {
+        line-height: 120%;
+    }
+    </style>
+    <script type="text/javascript" language="JavaScript">
+    var initTeletext = function() {
+        window.setInterval(updateClock, 1000);
+        window.setTimeout(updateCounter, 100);
+    }
+    var addleadingspace = function(number) {
+        return (number < 10 ? " " : "") + number; 
+    }
+    var addleadingzero = function(number) {
+        return (number < 10 ? "0" : "") + number; 
+    }
+    var dayofweek = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+    var monthname = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+    var updateClock = function() {
+        var d = new Date();
+        // document.getElementById("TTdate").innerHTML = dayofweek[d.getDay()] + " " + addleadingspace(d.getDate()) + " " + monthname[d.getMonth()];
+        document.getElementById("TTtime").innerHTML = addleadingzero(d.getHours()) + ":" + addleadingzero(d.getMinutes()) + "/" + addleadingzero(d.getSeconds());
+    }
+    var ticker=100;
+    var updateCounter = function() {
+        document.getElementById("TTcounter").innerHTML = ticker;
+        ticker +=1;
+        if (ticker > 999) {
+            ticker = 100;
+        }  
+        if (Math.random() < 0.05) {
+            window.setTimeout(updateCounter, 1000 + Math.random()*3000);    
+        } else {
+            window.setTimeout(updateCounter, 100);    
+        }
+    }
+    window.onload = initTeletext;
+    </script>
+    </head>
+    
+    <body>
+        <style>
+            body {
+                max-height: none;
+                position: static;
+            }
+            .bottom {
+                position: static;
+            }
+        </style>
+        <div class="teletext">
+            <div id="header">
+                <span class="white">CEEFAX 1 303</span><span class="green" id="TTcounter">100</span> <span class="yellow"><span id="TTtime">00:00/00</span>
+            </div>
+        </div>
+        <div class="teletext container">
+            <div id="main">
+                <div class="title">
+                    <div class="logo">
+                        <h1 class="black whitebg">B</h1><h1 class="black whitebg">F</h1><h1 class="black whitebg">C</h1>
+                    </div>
+                    <div class="football">
+                        <h1 class="green bluebg">FOOTBALL</h1>
+                    </div>
+                </div>
+            </div>
+            <div class="teletext" id="superLeague">
+                <div class="teletext results">
+                    <p class="green">SUPER LEAGUE RESULTS</p>
+                    <p class="white">1/2</p>
+                </div>
+                <div class="teletext score">
+                    {% for fixture in topLeagueResults %}
+                        <p class="cyan home">{{ fixture['home'] }}</p><p class="white item-center" id="score">{{ fixture['homeGls'] }} - {{ fixture['awayGls'] }}</p><p class="cyan away">{{ fixture['away'] }}</p>
+                        <div class="white goals home">
+                            {% for goal in fixture['homeScorers'] %}
+                            <p>{{ goal['name'] }}</p>
+                            {% endfor %}
+                        </div>
+                        <p class="item-center"></p>
+                        <div class="white goals away">
+                            {% for goal in fixture['awayScorers'] %}
+                            <p>{{ goal['name'] }}</p>
+                            {% endfor %}
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+            <div class="teletext" id="subLeague" style="display: none;">
+                <div class="teletext results">
+                    <p class="green">SUB LEAGUE RESULTS</p>
+                    <p class="white">2/2</p>
+                </div>
+                <div class="teletext score">
+                    {% for fixture in subLeagueResults %}
+                        <p class="cyan home">{{ fixture['home'] }}</p><p class="white item-center" id="score">{{ fixture['homeGls'] }} - {{ fixture['awayGls'] }}</p><p class="cyan away">{{ fixture['away'] }}</p>
+                        <div class="white goals home">
+                            {% for goal in fixture['homeScorers'] %}
+                            <p>{{ goal['name'] }}</p>
+                            {% endfor %}
+                        </div>
+                        <p class="item-center"></p>
+                        <div class="white goals away">
+                            {% for goal in fixture['awayScorers'] %}
+                            <p>{{ goal['name'] }}</p>
+                            {% endfor %}
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+            <div class="teletext">
+                <a id="proceed" href="/teletable" role="button">Proceed</a>
+            </div>
+            <div class="bottom">
+                <div class="pages bluebg">
+                    <p><span class="yellow">Football&nbsp;</span><span class="white">&nbsp;302</span> </p><p><span class="yellow">Front page&nbsp;</span><span class="white">&nbsp;100</span></p><p><span class="yellow">TV&nbsp;</span><span class="white">&nbsp;600</span></p>
+                </div>
+                <div id="footer">
+                    <a href="http://www.galax.xyz/TELETEXT/INDEX.HTM" target="_blank" class="red">Galax</a><a href="#" class="green">PremTable</a><a href="#" class="yellow">D1/2 Tabs</a><a href="#" class="cyan">Menu</a>
+                </div>
+            </div>
+        </div>
+    </body>
+    <script>
+        function isVisible(elem) {
+            return elem.offsetWidth > 0 || elem.offsetHeight > 0;
+        }
+        setInterval(function(){
+            var sub = document.querySelector("#subLeague");
+            var sup = document.querySelector("#superLeague");
+            if(isVisible(sub)) {
+            sub.style.display = 'none';
+            sup.style.display = 'block'
+            } else {
+            sup.style.display = 'none';
+            sub.style.display = 'block'
+            }
+        },10000);
+    </script>
+</html>

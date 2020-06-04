@@ -1,0 +1,361 @@
+
+<html>
+    <title>Match</title>
+    <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta content="text/html; charset=UTF-8" http-equiv="content-type">
+    <link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/css/teletext.css">
+    <style>
+    .sep {
+        line-height: 120%;
+    }
+    </style>
+    <script type="text/javascript" language="JavaScript">
+    var initTeletext = function() {
+        window.setInterval(updateClock, 1000);
+        window.setTimeout(updateCounter, 100);
+    }
+    var addleadingspace = function(number) {
+        return (number < 10 ? " " : "") + number; 
+    }
+    var addleadingzero = function(number) {
+        return (number < 10 ? "0" : "") + number; 
+    }
+    var dayofweek = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+    var monthname = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+    var updateClock = function() {
+        var d = new Date();
+        // document.getElementById("TTdate").innerHTML = dayofweek[d.getDay()] + " " + addleadingspace(d.getDate()) + " " + monthname[d.getMonth()];
+        document.getElementById("TTtime").innerHTML = addleadingzero(d.getHours()) + ":" + addleadingzero(d.getMinutes()) + "/" + addleadingzero(d.getSeconds());
+    }
+    var ticker=100;
+    var updateCounter = function() {
+        document.getElementById("TTcounter").innerHTML = ticker;
+        ticker +=1;
+        if (ticker > 999) {
+            ticker = 100;
+        }  
+        if (Math.random() < 0.05) {
+            window.setTimeout(updateCounter, 1000 + Math.random()*3000);    
+        } else {
+            window.setTimeout(updateCounter, 100);    
+        }
+    }
+    window.onload = initTeletext;
+    </script>
+    
+    </head>
+    
+    <body>
+        <div class="teletext">
+            <div id="header">
+                <span class="white">CEEFAX 1 303</span><span class="green" id="TTcounter">100</span> <span class="yellow"><span id="TTtime">00:00/00</span>
+            </div>
+        </div>
+        <div class="teletext">
+            <div id="main">
+                <div class="title">
+                    <div class="logo">
+                        <h1 class="black whitebg">B</h1><h1 class="black whitebg">F</h1><h1 class="black whitebg">C</h1>
+                    </div>
+                    <div class="football">
+                        <h1 class="green bluebg">FOOTBALL</h1>
+                    </div>
+                </div>
+            </div>
+            <div class="teletext">
+                <p class="green">LEAGUE FIXTURE</p>
+            </div>
+            <div class="teletext minutes">
+                <p id="minCounter">0</p>
+            </div>
+            <div class="teletext score">
+                <p class="cyan home">{{ homeName }}</p><p class="white item-center" id="score">15:00</p><p class="cyan away">{{ awayName }}</p>
+                <div class="white goals home">
+                    <p id="home"></p>
+                </div>
+                <p class="item-center"></p>
+                <div class="white goals away">
+                    <p id="away"></p>
+                </div>
+            </div>
+            <div class="teletext">
+                <p class="green">Attendance: {{ attendance }}</p>
+            </div>
+            <div class="teletext">
+                <p class="teletext bluebg yellow" id="pundit"></p>
+                <button id="ko" onclick="kickOff()" type="button">Kick-off</button>
+                <button id="ko2" onclick="secondHalf()" type="button" style="display: none;">Kick-off</button>
+                <a id="proceed" href="/results" role="button" style="display: none;">Proceed</a>
+            </div>
+            <div class="bottom">
+                <div class="pages bluebg">
+                    <p><span class="yellow">Football&nbsp;</span><span class="white">&nbsp;302</span> </p><p><span class="yellow">Front page&nbsp;</span><span class="white">&nbsp;100</span></p><p><span class="yellow">TV&nbsp;</span><span class="white">&nbsp;600</span></p>
+                </div>
+                <div id="footer">
+                    <a href="http://www.galax.xyz/TELETEXT/INDEX.HTM" target="_blank" class="red">Galax</a><a href="#" class="green">PremTable</a><a href="#" class="yellow">D1/2 Tabs</a><a href="#" class="cyan">Menu</a>
+                </div>
+            </div>
+        </div>
+    </body>
+    <script>
+        function getRandomInt(min, max) {
+            min = Math.ceil(min);
+            max = Math.floor(max);
+            return Math.floor(Math.random() * (max - min + 1)) + min; //The maximum is inclusive and the minimum is inclusive 
+        }
+
+        function removeItem(arr, value) { 
+            var index = arr.indexOf(value);
+            if (index > -1) {
+                arr.splice(index, 1);
+            }
+            return arr;
+        }
+
+        function getScorer(teamGls) {
+            let randIndex = getRandomInt(0, teamGls.length -1)
+            let player = teamGls[randIndex]
+            return player;
+        }
+
+        function getMinutes(mins, ft) {
+            let randomMin
+            if (getRandomInt(0,2) < 2) {
+                randomMin = getRandomInt(mins,mins + 40)
+                if (randomMin > ft) {
+                    randomMin = getRandomInt(mins,ft % (ft + mins))
+                }   
+            }
+            else {
+                randomMin = getRandomInt(mins,ft)
+            }
+            while (mins <= ft) {
+                if (randomMin == mins) {
+                    return mins;
+                }
+                else {
+                    mins++;
+                }
+            }
+            return randomMin;
+        }
+
+        function goal(teamGls, mins, ft) {
+            let player = getScorer(teamGls)
+            let goalMinute = getMinutes(mins, ft)
+            return [goalMinute, player]
+        }
+
+        function displayGoal(team, minute, scorer) {
+            var newP = document.createElement("p");
+            // and give it some content
+            var content = document.createTextNode(`${scorer}, ${minute}`);
+            // add the text node to the newly created div
+            newP.appendChild(content);
+
+            var addHere, parentDiv;
+            if (team == "home") {
+                addHere = document.getElementById('home');
+            }
+            else {
+                addHere = document.getElementById('away');
+            }
+            parentDiv = addHere.parentNode
+            parentDiv.insertBefore(newP, addHere);
+        }
+
+        function goalText(team, teamScorer, hg, ag) {
+            let string = ""
+            let homeTeam = {{homeName | tojson}}
+            let awayTeam = {{awayName | tojson}}
+
+            if (team == "home") {
+                if (hg - ag == 1) {
+                    string = `It's in! ${teamScorer} puts ${homeTeam} ahead.`;
+                }
+                else if (ag == hg) {
+                    string = `${teamScorer} gets the equaliser for ${homeTeam}!`;
+                }
+                else if (hg - ag == 3) {
+                    string = `${teamScorer} scores! ${homeTeam} are making this look easy.`;
+                }
+                else if (hg - ag == 4 ) {
+                    string = `It's another! ${teamScorer} makes it embarrassing for ${awayTeam}.`;
+                }
+                else {
+                    string = `${teamScorer} scores for ${homeTeam}!`;
+                }
+            }
+            else {
+                if (ag - hg == 1) {
+                    string = `It's in! ${teamScorer} puts ${awayTeam} ahead.`;
+                }
+                else if (ag == hg) {
+                    string = `${teamScorer} gets the equaliser for ${awayTeam}!`;
+                }
+                else if (ag - hg == 3) {
+                    string = `${teamScorer} scores! ${awayTeam} are making this look easy.`;
+                }
+                else if (ag - hg == 4 ) {
+                    string = `It's another! ${teamScorer} makes it embarrassing for ${homeTeam}.`;
+                }
+                else {
+                    string = `${teamScorer} scores for ${awayTeam}!`;
+                }
+            }
+            return string
+        }
+
+        function sleep(ms) {
+            return new Promise(resolve => setTimeout(resolve, ms));
+        }
+
+        async function reportGoal(team, teamScorer, hg, ag) {
+            var locatePundit = document.getElementById("pundit");
+            var locateScore = document.getElementById("score")
+            var flash = 0;
+            locateScore.textContent = "GOAL!!!"
+            while (flash < 30) {
+                
+                if (flash <= 8) {
+                    if (locateScore.style.color == 'white') {
+                        locateScore.style.color = 'black';
+                    }
+                    else {
+                        locateScore.style.color = 'white';
+                    }
+                }
+                else if (flash == 29) {
+                    locateScore.style.color = 'white';
+                    displayGoal(team, teamScorer[0], teamScorer[1]);
+                    locatePundit.style.display = 'none';
+                }
+                else {
+                    locatePundit.style.display = 'block';
+                    locatePundit.textContent = goalText(team, teamScorer[1], hg, ag);
+                }
+                await sleep(100)
+                flash++;    
+            }
+        }
+
+        var home = {{ homeScorers | tojson }};
+        var away = {{ awayScorers | tojson }};
+        var homeGls, awayGls, goalsTtl, homeScorers, awayScorers, ha, gl, gs, added, ft, ht, mins, counter, hg, ag;
+
+        
+        async function kickOff() {
+                document.querySelector('#score').textContent="0 - 0";
+                document.getElementById('ko').style.display = 'none';
+                while (counter <= ht) {
+                if (counter == ht) {
+                    document.querySelector('#minCounter').innerHTML = "HT";
+                    document.getElementById('ko2').style.display = 'flex';
+                }
+                else {
+                    document.querySelector('#minCounter').innerHTML = counter;
+                }
+                counter++;  
+                for (let i = 0; i < homeScorers.length; i++) {
+                    if (counter === homeScorers[i][0]) {
+                        hg++;
+                        reportGoal("home", homeScorers[i], hg, ag);
+                        await sleep(2900);
+                        document.querySelector('#score').textContent=`${hg} - ${ag}`
+                    }
+                }
+                for (let j = 0; j < awayScorers.length; j++) {
+                    if (counter === awayScorers[j][0]) {
+                        ag++;
+                        reportGoal("away", awayScorers[j], hg, ag);
+                        await sleep(2900);
+                        document.querySelector('#score').textContent=`${hg} - ${ag}`
+                    }
+                }
+                await sleep(100);
+            }
+        }
+        async function secondHalf() {
+            document.getElementById('ko2').style.display = 'none';
+            while (counter <= ft) {
+                if (counter == ft) {
+                    document.querySelector('#minCounter').innerHTML = "FT";
+                    document.getElementById('proceed').style.display = 'inline-block';
+                }
+                else {
+                    document.querySelector('#minCounter').innerHTML = counter;
+                }
+                counter++;  
+                for (let i = 0; i < homeScorers.length; i++) {
+                    if (counter === homeScorers[i][0]) {
+                        hg++;
+                        reportGoal("home", homeScorers[i], hg, ag);
+                        await sleep(2900);
+                        document.querySelector('#score').textContent=`${hg} - ${ag}`
+                    }
+                }
+                for (let j = 0; j < awayScorers.length; j++) {
+                    if (counter === awayScorers[j][0]) {
+                        ag++;
+                        reportGoal("away", awayScorers[j], hg, ag);
+                        await sleep(2900);
+                        document.querySelector('#score').textContent=`${hg} - ${ag}`
+                    }
+                }
+                await sleep(100);
+            }
+        }
+
+        window.addEventListener('DOMContentLoaded', (event) => {
+            homeGls = [];
+            awayGls = [];
+
+            // add home scorers to array
+            for (let i = 0; i < home.length; i++) {
+                homeGls.push(home[i].name)
+            }
+            // add away scorers to array
+            for (let i = 0; i < away.length; i++) {
+                awayGls.push(away[i].name)
+            }
+            
+            // randomise gameplay
+            
+            goalsTtl = homeGls.length + awayGls.length
+            homeScorers = []
+            awayScorers = []
+            added = getRandomInt(1,7);
+            ft = getRandomInt(90,90 + added)
+            ht = 45;
+            mins = 0;
+
+            while (goalsTtl > 0) {
+                ha = getRandomInt(0,1)
+                if (ha == 1 && homeGls.length > 0) {
+                    gl = goal(homeGls, mins, ft)
+                    gs = gl[1]
+                    mins = gl[0]
+                    homeGls = removeItem(homeGls, gs)
+                    homeScorers.push(gl)
+                    goalsTtl--;
+                }
+                if (ha == 0 && awayGls.length > 0) {
+                    gl = goal(awayGls, mins, ft)
+                    gs = gl[1]
+                    mins = gl[0]
+                    awayGls = removeItem(awayGls, gs)
+                    awayScorers.push(gl)
+                    goalsTtl--; 
+                }
+            }
+        console.log(homeScorers)
+        console.log(awayScorers)
+
+        counter = 0;
+        hg = 0;
+        ag = 0;
+    });
+    </script>
+</html>

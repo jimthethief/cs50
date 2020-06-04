@@ -25,7 +25,7 @@
             </thead>
             <tbody>
                 {% for club in getStandings %}
-                    {% if club['pos'] > club['pos_track'] %}
+                    {% if club['pos'] < club['pos_track'] %}
                         {% set arrow = "fa-caret-up" %}
                     {% elif club['pos'] == club['pos_track'] %}
                         {% set arrow = "fa-minus" %}
@@ -82,7 +82,7 @@
             </thead>
             <tbody>
                 {% for club in getStandings %}
-                    {% if club['pos'] > club['pos_track'] %}
+                    {% if club['pos'] < club['pos_track'] %}
                         {% set arrow = "fa-caret-up" %}
                     {% elif club['pos'] == club['pos_track'] %}
                         {% set arrow = "fa-minus" %}
