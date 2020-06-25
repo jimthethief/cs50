@@ -18,10 +18,6 @@ footer,header,hgroup,menu,nav,output,section,summary,time,audio,video {
   -webkit-font-smoothing: none;
 }
 
-html {
-    height: 100vh;
-}
-
 a {
     text-decoration: none;
 }
@@ -109,8 +105,9 @@ body {
     line-height: 20px;
     text-align: center;
     margin: auto;
-    max-height: 100vh;
-    position: relative;
+    min-height: 90vh;
+    display: flex;
+    flex-direction: column;
 }
 
 .teletext {
@@ -127,8 +124,8 @@ body {
 }
 
 .bottom {
-    position: absolute;
-    bottom: 0;
+    margin-top: auto;
+    align-self: flex-end;
     width: 100%;
 }
 
@@ -272,65 +269,3 @@ h1 {
     width:90%;
     }
 }
-
-
-
-/*
-
-  .listleft, .listright {
-    float:left;
-    margin:5px 0px;
-  }
-  
-  .listleft {
-    width:90%;
-    color:#00ffff;
-  }
-  
-  .listright {
-    width:10%;
-    text-align:right;
-  }
-
- h3 {
-    color:#ffff00;
-  }
-  
-  hr {
-    height:6px;
-    width:100%;
-    color:#0000ff;
-    background-color:#0000ff;
-    border:1px solid #0000ff;
-    margin:20px 0px;
-  }
-  
-  #red, #green, #yellow, #blue {
-    width:25%;
-    display:inline;
-    border:0px;
-    float:left;
-    text-align:center;
-  }
-
-
-.doubleText {
-    grid-row: 1;
-    display: flex;
-    flex-direction: column;
-}
-  
-.option {
-    display: grid;
-    grid-template-columns: 10fr auto;
-    padding-bottom: 1px;
-}
-
-.teletext {
-    text-align: left;
-    display: block;
-    font-size: 20px;
-    font-smooth: never;
-    -webkit-font-smoothing : none;
-}
-*/

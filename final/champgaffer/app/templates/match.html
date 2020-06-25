@@ -26,7 +26,6 @@
     var monthname = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
     var updateClock = function() {
         var d = new Date();
-        // document.getElementById("TTdate").innerHTML = dayofweek[d.getDay()] + " " + addleadingspace(d.getDate()) + " " + monthname[d.getMonth()];
         document.getElementById("TTtime").innerHTML = addleadingzero(d.getHours()) + ":" + addleadingzero(d.getMinutes()) + "/" + addleadingzero(d.getSeconds());
     }
     var ticker=100;
@@ -81,10 +80,10 @@
                 </div>
             </div>
             <div class="teletext">
+                <p class="teletext bluebg yellow" id="pundit" style="width: 100%; visibility: hidden;">It's still 0-0 here as both teams push for an opener</p>
                 <p class="green">Attendance: {{ attendance }}</p>
             </div>
             <div class="teletext">
-                <p class="teletext bluebg yellow" id="pundit"></p>
                 <button id="ko" onclick="kickOff()" type="button">Kick-off</button>
                 <button id="ko2" onclick="secondHalf()" type="button" style="display: none;">Kick-off</button>
                 <a id="proceed" href="/results" role="button" style="display: none;">Proceed</a>
@@ -230,10 +229,10 @@
                 else if (flash == 29) {
                     locateScore.style.color = 'white';
                     displayGoal(team, teamScorer[0], teamScorer[1]);
-                    locatePundit.style.display = 'none';
+                    locatePundit.style.visibility = 'hidden';
                 }
                 else {
-                    locatePundit.style.display = 'block';
+                    locatePundit.style.visibility = 'visible';
                     locatePundit.textContent = goalText(team, teamScorer[1], hg, ag);
                 }
                 await sleep(100)

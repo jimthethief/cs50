@@ -26,7 +26,7 @@ def getRandomClub(user):
     return choices(clubs)
 
 def getClubByPos(user, pos):
-    club = db.execute("SELECT * FROM clubs JOIN club_attr ON clubs.club_id = club_attr.club_id WHERE manager_id = ? AND clubs_attr.pos = ?;",
+    club = db.execute("SELECT * FROM clubs JOIN club_attr ON clubs.club_id = club_attr.club_id WHERE manager_id = ? AND club_attr.pos = ?;",
                       user, pos)[0]
     return club
 
@@ -35,7 +35,7 @@ def getStory(clubDict, news_id, pl_id):
     userId = clubDict[0]['id']
     firstName = clubDict[0]['name'].split()[0].capitalize()
 
-    Story = dict.fromkeys(["Mail_id", "Sender", "Subject", "Body", "Player_id", "Club_id"])
+    Story = dict.fromkeys(["Mail_id", "Sender", "Subject", "Body", "Player_id", "Club_id", "Offer"])
     if news_id != 0:
         item = news_id
     else:
@@ -44,7 +44,8 @@ def getStory(clubDict, news_id, pl_id):
     Story['Mail_id'] = item
     Story['Player_id'] = 0
     Story['Club_id'] = 0
-     
+    Story['Offer'] = 0
+      
     if item == 1:
         if clubDict[0]['current_season'] - clubDict[0]['season'] == 0:
             Story['Sender'] = "The Chairman"
@@ -53,13 +54,13 @@ def getStory(clubDict, news_id, pl_id):
         else:
             Story['Sender'] = "The Chairman"
             Story['Subject'] = f"{clubDict[0]['current_season']} Expectations"
-            if clubDict[0]['rank'] > 3:
+            if clubDict[0]['rank'] < 3:
                 Story['Body'] = f"Hi {firstName},\n\nThanks yet again for working so hard to make last season a success. I never doubted that you're the man for the job. Same again this time around please {firstName} - we want to be challenging for that title! We're giving you £{clubDict[0]['budget']}M in the transfer kitty to keep us competetive.\n\nStay Classy,\nGlenn\n"   
-            elif clubDict[0]['rank'] > 7:
+            elif clubDict[0]['rank'] < 7:
                 Story['Body'] = f"Hi {firstName},\n\nWe had a good showing last time out - it looks like we're on the right track! We want to make sure that we're moving forward, so we're providing £{clubDict[0]['budget']}M for new players.\n\nKeep it real,\n\nGlenn\n"
-            elif clubDict[0]['rank'] > 11:
+            elif clubDict[0]['rank'] < 11:
                 Story['Body'] = f"Hi {firstName},\n\nIt's great to be in the top league isn't it? We'd very much like to get comfortable here, so I want you to concentrate on steadying the ship this year. I've put £{clubDict[0]['budget']}M aside for transfers.\n\nGood luck champ,\nGlenn\n"
-            elif clubDict[0]['rank'] > 16:
+            elif clubDict[0]['rank'] < 16:
                 Story['Body'] = f"Hi {firstName},\n\nLast season was so-so but I think that we can do better. Let's give the fans something to shout about this season and push for promotion. I've put £{clubDict[0]['budget']}M into the transfer account for you to play with. Let's do this!\n\nWarm Regards,\nGlenn\n"
             else:
                 Story['Body'] = f"Hi {firstName},\n\nI think we can both agree that last season was a little disappointing. We expect at least a mid-table finish this time around to keep things stable. We've allocated £{clubDict[0]['budget']}M to spend on players. Spend it wisely and let's get cracking!\n\nWarm Regards,\nGlenn\n"
@@ -70,7 +71,7 @@ def getStory(clubDict, news_id, pl_id):
 
         if item > 3 and item < 12:
             player = getUserPlayer(userId)[0]
-            stats = f"{player['name']}: Age: {player['age']} // Ovr: {player['ovr']} // Value: {player['value']}\n"
+            stats = f"{player['name']}: Age: {player['age']} // Ovr: {round(player['ovr'])} // Value: {player['value']}\n"
             Story['Player_id'] = player['player_id']
 
         if item == 2:
@@ -111,17 +112,20 @@ def getStory(clubDict, news_id, pl_id):
         elif item == 4: 
             Story['Sender'] = club['manager']
             Story['Subject'] = f"Transfer Offer - {player['name']}"
-            Story['Body'] = f"Hi {firstName},\n\nI like the look of {player['name']} and want to recruit him for {club['club_name']}. We're a bit hard up at the minute but I've pushed the chairman hard and we can stretch to £{round(playerValue(player['ovr'], player['handsomeness'], player['potential']) * uniform(0.5,0.7),1)}M. What do you think?\n\nRegards,\n{club['manager']}\n\n{stats}\n"
+            Story['Offer'] = round(playerValue(player['ovr'], player['handsomeness'], player['potential']) * uniform(0.5,0.7),1)
+            Story['Body'] = f"Hi {firstName},\n\nI like the look of {player['name']} and want to recruit him for {club['club_name']}. We're a bit hard up at the minute but I've pushed the chairman hard and we can stretch to £{Story['Offer']}M. What do you think?\n\nRegards,\n{club['manager']}\n\n{stats}\n"
         
         elif item == 5:
             Story['Sender'] = club['manager']
             Story['Subject'] = f"Transfer Offer - {player['name']}"
-            Story['Body'] = f"Hi {firstName},\n\nWe're looking to rebuild the squad at {club['club_name']} and I think that {player['name']} would be a great addition for us. Is he available? The chairman's being generous with this one so we can offer up to £{round(playerValue(player['ovr'], player['handsomeness'], player['potential']) * uniform(1.2, 1.8), 1)}m.\n\nThanks,\n{club['manager']}\n\n{stats}\n"
+            Story['Offer'] = round(playerValue(player['ovr'], player['handsomeness'], player['potential']) * uniform(1.2, 1.8), 1)
+            Story['Body'] = f"Hi {firstName},\n\nWe're looking to rebuild the squad at {club['club_name']} and I think that {player['name']} would be a great addition for us. Is he available? The chairman's being generous with this one so we can offer up to £{Story['Offer']}m.\n\nThanks,\n{club['manager']}\n\n{stats}\n"
         
         elif item == 6:
             Story['Sender'] = club['manager']
             Story['Subject'] = f"Transfer Offer - {player['name']}"
-            Story['Body'] = f"Hi {firstName},\n\nI've been admiring {player['name']} for a while now and would like to bring him to {club['club_name']}. How does £{playerValue(player['ovr'], player['handsomeness'], player['potential'])}M sound?\n\nThanks,\n{club['manager']}\n\n{stats}\n"
+            Story['Offer'] = round(playerValue(player['ovr'], player['handsomeness'], player['potential']) * uniform(1.2, 1.8), 1)
+            Story['Body'] = f"Hi {firstName},\n\nI've been admiring {player['name']} for a while now and would like to bring him to {club['club_name']}. How does £{Story['Offer']}M sound?\n\nThanks,\n{club['manager']}\n\n{stats}\n"
         
         elif item == 7:
             Story['Sender'] = "The Chairman"
@@ -229,6 +233,6 @@ def getStory(clubDict, news_id, pl_id):
             Story['Club_id'] = winner['club_id']
             Story['Sender'] = "Football Round Up"
             Story['Subject'] = f"{winner['club_name']} clinch the title"
-            Story['Body'] = f"{winner['club_name']} will be mixing it with the big boys next season after finishing the season at the summit of the second tier. \n\n{runnerup['club_name']} ran them close and won't be too disappointed, as there 2nd place finish means that they'll join {winner['club_name']} at the top table of English Football.\n"
+            Story['Body'] = f"{winner['club_name']} will be mixing it with the big boys next season after finishing the season at the summit of the second tier. \n\n{runnerup['club_name']} ran them close and won't be too disappointed, as their 2nd place finish means that they'll join {winner['club_name']} at the top table of English Football.\n"
    
     return Story

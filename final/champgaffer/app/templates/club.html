@@ -1,0 +1,273 @@
+{% extends "layout.html" %}
+
+{% block title %}
+    {{ clubInfo['club_name'] }}
+{% endblock %}
+
+{% block main %}
+{% if clubInfo['primary_colour'] == "white" %}
+    {% set primary = clubInfo['secondary_colour'] %}
+    {% set secondary = clubInfo['primary_colour'] %}
+{% else %}
+    {% set primary = clubInfo['primary_colour'] %}
+    {% set secondary = clubInfo['secondary_colour'] %}
+{% endif %}
+<style>
+    .card-header, .modclick, .clubTitle, .clubOvr,
+    .table-hover tbody tr:hover,
+    .table-hover tbody tr:hover {
+        transition: background ease-in 0.2s;
+        z-index: 0;
+        background-color: {{ primary }};
+        color: {{ secondary }};
+    }  
+
+    .sticker::before {
+        background-image: linear-gradient(to bottom right, {{ clubInfo['primary_colour'] }}, {{ clubInfo['secondary_colour'] }});
+        background-size: cover;
+    }
+
+    .table-hover tbody tr {
+        transition: background ease-out 0.2s;
+    }
+
+</style>
+<div class="container">
+    <div class="row">
+        <div class="col-12 col-md-12">
+            <div class="clubTitle">
+                <h1>{{ clubInfo['club_name'] }}</h1>
+                <p>"{{ clubInfo['desc'] }}"</p>
+            </div>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-6 col-md-6">
+            <div class="clubOvrCont">
+                <p class="clubOvr" style="width:{{ clubInfo['ovr'] * 5 }}%;">Ovr: {{ clubInfo['ovr'] }} / 20</p>
+            </div>
+        </div>
+        <div class="col-6 col-md-6">
+            {% if clubInfo['pos'] > 10 %}
+                {% set league = 'Sub League' %}
+                {% set leagueClass = "subLeague" %}
+                {% set pos = clubInfo['pos'] - 10 %}
+            {% else %}
+                {% set league = 'Super League' %}
+                {% set leagueClass = 'superLeague' %}
+                {% set pos = clubInfo['pos'] %}
+            {% endif %}
+            <div class="clubOvrCont">
+                <p class="{{ leagueClass }}">#{{ pos }} — {{ league }}</p>
+            </div>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-6 col-md-4">
+            <div class="card">
+                <h5 class="card-header">{{ clubInfo['manager'] }}</h5>
+                <div class="sticker">
+                    <div class="avatar-holder">
+                        <h4 class="clubTitle" style="width: auto; height: 20px; float: right; margin: 5px;font-size: small;">MANAGER</h4>
+                        <img class="card-img-top" src="https://avatars.dicebear.com/v2/male/{{ clubInfo['manager'] }}.svg" alt="Card image cap">
+                    </div>
+                </div>
+                <h5 class="card-header">{{ clubInfo['club_name'] }}</h5> 
+                <ul class="list-group list-group-flush">
+                    <li class="list-group-item">Club Rank: {{ clubInfo['rank'] }}</li>
+                    <li class="list-group-item">Club Rating: {{ clubInfo['ovr'] }}</li>
+                </ul>
+            </div>
+        </div>
+        <div class="col-6 col-md-4">
+            <div class="card">
+                <h5 class="card-header">{{ starAtt['playername'] }}</h5>
+                <div class="sticker">
+                    <div class="avatar-holder">
+                        <img src="static/img/flags/{{ starAtt['flag'] }}" style="width:30px; height=20px; margin:5px;"/>
+                        <h4 class="clubTitle" style="width: auto; height: 20px; float: right; margin: 5px;font-size: small;">&#x2B50; ATT</h4>
+                        <img class="card-img-top" src="https://avatars.dicebear.com/v2/male/{{ starAtt['playername'] }}.svg" alt="Card image cap">
+                    </div>
+                </div>
+                <h5 class="card-header">{{ clubInfo['club_name'] }}</h5> 
+                <ul class="list-group list-group-flush">
+                    <li class="list-group-item">Age: {{ starAtt['playerage'] }}</li>
+                    <li class="list-group-item">Nationality: {{ starAtt['nationality'] }}</li>
+                    <li class="list-group-item">Value: {{ starAtt['value'] }}</li>
+                    <li class="list-group-item">Rating: {{ starAtt['ovr'] }}</li>
+                </ul>
+            </div>
+        </div>
+        <div class="col-6 col-md-4">
+            <div class="card">
+                <h5 class="card-header">{{ starDef['playername'] }}</h5>
+                <div class="sticker">
+                    <div class="avatar-holder">
+                        <img src="static/img/flags/{{ starDef['flag'] }}" style="width:30px; height=20px; margin:5px;"/>
+                        <h4 class="clubTitle" style="width: auto; height: 20px; float: right; margin: 5px;font-size: small;">&#x2B50; DEF</h4>
+                        <img class="card-img-top" src="https://avatars.dicebear.com/v2/male/{{ starDef['playername'] }}.svg" alt="Card image cap">
+                    </div>
+                </div>
+                <h5 class="card-header">{{ clubInfo['club_name'] }}</h5> 
+                <ul class="list-group list-group-flush">
+                    <li class="list-group-item">Age: {{ starDef['playerage'] }}</li>
+                    <li class="list-group-item">Nationality: {{ starDef['nationality'] }}</li>
+                    <li class="list-group-item">Value: {{ starDef['value'] }}</li>
+                    <li class="list-group-item">Rating: {{ starDef['ovr'] }}</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    <div class="row">
+        <table class="table table-hover">
+            <thead class="thead-dark">
+                <tr>
+                    <th>Nat</th>
+                    <th>Pos</th>
+                    <th>Player</th>
+                    <th>Age</th>
+                    <th>Ovr</th>
+                    <th>Goals</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for player in getPlayers %}
+                    <tr class="clickRow" data-toggle="modal" data-target="#playerModal" data-player="{{ player }}">
+                        <td><img src="static/img/flags/{{ player['flag'] }}" width="30px" height="20px"/></td>
+                        <td>{{ player["pos"] }}</td>
+                        <td>{{ player["name"] }}</td>
+                        <td>{{ player["age"] }}</td>
+                        <td><div style="width: 100%; height: 50%; border: solid 1px grey;"><div style="font-size: small;height: 100%; width:{{ player['ovr'] * 5 }}%; background: {{ primary }}; color: {{ secondary }}">{{ round(player['ovr']) }}</div></div></td>
+                        <td>{{ player["goals"] }}</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="modal fade" id="playerModal" tabindex="-1" role="dialog" aria-labelledby="playerCard" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-body">
+                <div class="container-fluid">
+                    <div class="row">
+                        <div class="col-12">
+                            <h5 class="card-header" id="name"></h5>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="sticker">
+                                <div class="avatar-holder">
+                                    <img id="plNat" src="" style="width:30px; height=20px; margin:5px;"/>
+                                    <img class="card-img-top" id="plImg" src="https://avatars.dicebear.com/v2/male/placeholder.svg" alt="Card image">
+                                </div>
+                            </div>
+                        </div>
+                    </div> 
+                    <div class="row">
+                        <div class="col-12">
+                            <h5 class="card-header" id="club">{{ clubInfo['club_name'] }}</h5>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-12">
+                            <table class="playerAttTable">
+                                <tbody>
+                                    <tr>
+                                        <td>Age: </td><td id="age"></td>
+                                        <td>Nationality</td></ts><td id="nat"></td>
+                                    </tr>
+                                    <tr>
+                                        <td>Potential: </td><td id="pot"></td>
+                                        <td>Value</td><td id="val"></td>
+                                    </tr>
+                                    <tr>
+                                        <td>Speed:</td><td id="spd"></td>
+                                        <td>Strength:</td><td id="str"></td>
+                                    </tr>
+                                    <tr></tr>
+                                        <td>Handsomeness: </td><td id="han"></td>
+                                        <td>Overall: </td><td id="rat"></td>
+                                    </tr>
+                                </tbody>
+                            </table>     
+                        </div>
+                    </div> 
+                </div>
+            </div>
+            <div class="modal-footer">
+                <div class="container">
+                    <div class="row">
+                        <div class="col-6 d-flex align-items-center">
+                            <p class="p-2" id="cost" style="background: {{ clubInfo['primary_colour'] }}; color: {{ clubInfo['secondary_colour'] }};"></p>
+                        </div>
+                        <div class="col-6">
+                            <button type="button" class="btn btn-secondary modclick" data-dismiss="modal">Close</button>
+                            <button type="button" class="btn btn-primary modclick" id="buy">Buy Player</button>
+                        </div>
+                    </div>
+                </div>
+            </div>   
+        </div>    
+    </div>
+</div>
+<form action="/buy" id="buyform" method="post" style="display: none;">
+    <input name="pl_id" id="pl_id">
+    <input name="cl_id" id="cl_id">
+    <input name="cl_name" id="cl_name">
+    <input name="cl_rank" id="cl_rank">
+    <input name="pl_cost" id="pl_cost">
+    <input name="pl_pos" id="pl_pos">
+    <input name="squad_num" id="squad_num">
+</form>
+<script>
+
+$('#playerModal').on('show.bs.modal', function (event) {
+    var player = $(event.relatedTarget)
+    var deets = player.data('player').replace(/['']+/g, '"');
+    
+    deets = JSON.parse(deets);
+    console.log(deets)
+
+    var msg = `Place an offer of £${deets['value']}m for ${deets['name']}?`;
+
+    $("#plImg").attr("src",`https://avatars.dicebear.com/v2/male/${deets['name']}.svg`);
+    $("#plNat").attr("src",`static/img/flags/${deets['flag']}`);
+    $(document).find('#name').text(`${deets['name']} — ${deets['pos']}`);
+    $(document).find('#age').text(`${deets['age']}`);
+    $(document).find('#nat').text(`${deets['nationality']}`);
+    $(document).find('#val').text(`£${deets['value']}m`);
+    $(document).find('#rat').text(`${Math.round(deets['ovr'])}`);
+    $(document).find('#spd').text(`${deets['speed']}`);
+    $(document).find('#str').text(`${deets['strength']}`);
+    $(document).find('#pot').text(`${deets['potential']}`);
+    $(document).find('#han').text(`${deets['handsomeness']}`);
+    $(document).find('#cost').text(`Transfer cost: £${deets['value']}m`);
+
+    document.getElementsByName("pl_id")[0].value = deets['player_id'];
+    document.getElementsByName("cl_id")[0].value = deets['club_id'];
+    document.getElementsByName("cl_name")[0].value = "{{clubInfo['club_name'] }}";
+    document.getElementsByName("cl_rank")[0].value = "{{clubInfo['rank'] }}";
+    document.getElementsByName("pl_cost")[0].value = deets['value'];
+    document.getElementsByName("pl_pos")[0].value = deets['pos'];
+    document.getElementsByName("squad_num")[0].value = deets['squad_num'];
+
+    var form = document.getElementById('buyform');
+
+    // Unbind any previously cancelled events and fire confirmation message
+    $(document).off('click', '#buy').on('click', '#buy', function (event) {
+            if (!confirm(msg)) {
+                return false;
+            }
+            else {
+                form.submit();
+                return true;
+            }
+    });
+});
+
+
+</script>
+{% endblock %}

@@ -22,7 +22,7 @@
 <div class="containter">
     <div class="row">
         <div class="col-6 col-md-6">
-            <table id="" class="table table-hover">
+            <table id="userColors" class="table table-hover">
                 <thead class="thead-dark">
                     <tr>
                         <th>#</th>
@@ -49,8 +49,22 @@
             <table class="table table-hover">
                 <thead class="oppLineup">
                     <tr>
+                        {% if opponent['pos'] > 10 %}
+                            {% set pos = opponent['pos'] - 10 %}
+                        {% else %}
+                            {% set pos = opponent['pos'] %}
+                        {% endif %}
+                        {% if pos > 3 %}
+                            {% set opSuffix = "th" %}
+                        {% elif pos > 2 %}
+                            {% set opSuffix = "rd" %}
+                        {% elif pos > 1 %}
+                            {% set opSuffix = "nd" %}
+                        {% else %}
+                            {% set opSuffix = "st" %}
+                        {% endif %}
                         <th>#</th>
-                        <th>{{ opponent["club_name"] }}</th>
+                        <th><a id="clubLink" style="color: inherit;">{{ opponent["club_name"] }} ({{ pos }}{{ opSuffix }})</a></th>
                     </tr>
                 </thead>
                 <tbody>
@@ -132,7 +146,7 @@
     </div>
     <div class="row justify-content-center">
         <div class="col-6">
-            <button id="proceed" onclick="toMatch()" type="button" class="btn btn-primary btn-lg btn-block"><span class="code"> <i class="fas fa-futbol"></i>&nbsp&nbsp</span>Proceed<span class="code"> &nbsp&nbsp<i class="fas fa-futbol"></i></span></button>
+            <button id="proceed" onclick="toMatch()" type="button" class="btn btn-primary btn-lg btn-block"><span class="code"> &#x26BD &nbsp</span>Proceed<span class="code"> &#x26BD &nbsp</span></button>
         </div>
     </div>
 </div>
@@ -140,9 +154,12 @@
 <script type = "text/javascript" src="/static/js/formation.js"></script>
 <script>
     document.addEventListener('DOMContentLoaded', function() {
-        var oppForm = {{ opponent['formation']|tojson }};
-        var oppPlayers = {{ opponentSquad|tojson }};
+        var club_link = {{opponent['club_name'] | tojson }}.replace(" ", "_");
+        var oppForm = {{ opponent['formation'] | tojson }};
+        var oppPlayers = {{ opponentSquad | tojson }};
         var count = 10;
+        $(document).find('#clubLink').attr("href", `/${club_link}`);
+        console.log(club_link)
         $('.oppImg').each(function (){
             $(this).attr("src",`https://avatars.dicebear.com/v2/male/${oppPlayers[count]['name']}.svg`);
             $(this).next().text(`${count + 1}: ${oppPlayers[count]['name']}`);

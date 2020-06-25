@@ -18,6 +18,56 @@ main img {
 	margin-bottom: 60px;
 }
 
+/* L O A D E R */
+
+.loader,
+.loader:after {
+    border-radius: 50%;
+    width: 1em;
+    height: 1em;
+}
+.loader {
+    color: #FF1493;
+    margin: 40vh auto;
+    font-size: 5em;
+    position: relative;
+    -webkit-transform: translateZ(0);
+    -ms-transform: translateZ(0);
+    transform: translateZ(0);
+    -webkit-animation: load 1.1s infinite linear;
+    animation: load 1.1s infinite linear;
+
+}
+
+@-webkit-keyframes load {
+    0% {
+        -webkit-transform: rotate(0deg);
+        transform: rotate(0deg);
+    }
+    100% {
+        -webkit-transform: rotate(360deg);
+        transform: rotate(360deg);
+    }
+}
+@keyframes load {
+    0% {
+        -webkit-transform: rotate(0deg);
+        transform: rotate(0deg);
+    }
+    100% {
+        -webkit-transform: rotate(360deg);
+        transform: rotate(360deg);
+    }
+}
+#loadingDiv {
+    position:absolute;;
+    top:0;
+    left:0;
+    width:100%;
+    height:100%;
+    background-color: rgba(52, 58, 64, 0.9)
+}
+
 /* W I N D O W S  9 8 */
 
 .windowfy {
@@ -54,24 +104,34 @@ a:hover {
 	text-decoration: none;
 	transition: color ease-in 0.3s;
 }
-#navbar a {
+#navbar a,
+.clubTitle a {
 	color: #FFF;
 	transition: color ease-out 0.3s;
 }
-#navbar a:hover {
+#navbar a:hover,
+.clubTitle a:hover {
 	color: #FF1493;
 	transition: color ease-in 0.3s;
 }
 
 .code {
-	color: rgba(255, 20, 147, 0);
-	transition: color 2s ease-out;
+	opacity: 0;
+	-webkit-transition: opacity 1s ease-in-out;
+    -moz-transition: opacity 1s ease-in-out;
+    -o-transition: opacity 1s ease-in-out;
+    transition: opacity 1s ease-in-out;
 }
+
 nav .navbar-brand:hover .code, 
-nav .nav-item:hover .code {
-	color: rgba(255, 20, 147, 1);
-	transition: 1s ease-in;
-	transition-property: color;
+nav .nav-item:hover .code,
+.clubTitle a:hover .code,
+.btn-lg:hover .code {
+	opacity: 1;
+	-webkit-transition: opacity 1s ease-in-out;
+    -moz-transition: opacity 1s ease-in-out;
+    -o-transition: opacity 1s ease-in-out;
+    transition: opacity 1s ease-in-out;
 }
 
 .clickRow:hover {
@@ -226,7 +286,7 @@ main .form-control {
 	-webkit-user-drag: element;
 }
 
-#starters .thead-dark th, 
+#userColors .thead-dark th, 
 .table-hover tbody tr#lineup:hover,
 .table-hover tbody tr#lineup:hover {
 	background-color: #2E86C1;
@@ -331,14 +391,28 @@ cursor: pointer;
 	transition-property: letter-spacing;
 }
 
-.btn-lg:hover .code, 
-.btn-lg:hover .code {
-	color: white;
-	transition: 0.5s ease-in;
-	transition-property: color;
+/* S T A N D I N G S */
+
+.superLeague {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: space-around;
+	height: 100%;
+	background: #2665FF !important;
+	color: #64E5FF !important; 
 }
 
-/* S T A N D I N G S */
+
+.subLeague {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: space-around;
+	height: 100%;
+	background: #FE4343 !important;
+	color: #0353FF !important;
+}
 
 .borderup {
 	border-bottom: 1.5px dashed #0F9D58;
@@ -371,4 +445,46 @@ cursor: pointer;
 }
 .fa-minus {
 	color: lightgrey;
+}
+
+/* C L U B  P A G E S */
+
+.clubTitle, .clubOvrCont {
+	font-family: "Pixelated MS Sans Serif";
+	margin: auto;
+	letter-spacing: 1.5;
+	font-weight: bold;
+	width: 80%;
+}
+
+.clubTitle {
+	background: #343a40;
+	color: #FF1493;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: space-around;
+	height: 100%;
+	padding:10px;
+	
+}
+
+.clubTitle p {
+	font-family: "Pixelated MS Sans Serif";
+	margin-bottom: 0;
+	font-style: italic;
+	
+}
+
+.clubOvrCont {
+	height: 100%;
+	border: 1px solid grey;
+}
+
+.clubOvr {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: space-around;
+	height: 100%;
 }

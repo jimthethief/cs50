@@ -6,7 +6,7 @@
 
 {% block main %}
 <style>
-    .card-header, .modclick,
+    .card-header, .modclick, .clubTitle, .clubOvr,
     .table-hover tbody tr:hover,
     .table-hover tbody tr:hover {
         background: {{ managerStats['primary'] }}; 
@@ -26,6 +26,34 @@
 
 </style>
 <div class="container">
+    <div class="row">
+        <div class="col-12 col-md-12">
+            <div class="clubTitle">
+                <h1>{{ managerStats['clubname'] }}</h1>
+            </div>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-6 col-md-6">
+            <div class="clubOvrCont">
+                <p class="clubOvr" style="width:{{ managerStats['clubovr'] * 5 }}%;">Ovr: {{ managerStats['clubovr'] }} / 20</p>
+            </div>
+        </div>
+        <div class="col-6 col-md-6">
+            {% if managerStats['pos'] > 10 %}
+                {% set league = 'Sub League' %}
+                {% set leagueClass = "subLeague" %}
+                {% set pos = managerStats['pos'] - 10 %}
+            {% else %}
+                {% set league = 'Super League' %}
+                {% set leagueClass = "superLeague" %}
+                {% set pos = managerStats['pos'] %}
+            {% endif %}
+            <div class="clubOvrCont">
+                <p class="{{ leagueClass }}">#{{ pos }} — {{ league }}</p>
+            </div>
+        </div>
+    </div>
     <div class="row">
         <div class="col-12 col-md-6">
             <div class="windowfy">
@@ -97,13 +125,15 @@
                 <h5 class="card-header">{{ managerStats['managername'] }}</h5>
                 <div class="sticker">
                     <div class="avatar-holder">
+                        <h4 class="clubTitle" style="width: auto; height: 20px; float: right; margin: 5px;font-size: small;">MANAGER</h4>
                         <img class="card-img-top" src="https://avatars.dicebear.com/v2/male/{{ managerStats['managername'] }}.svg" alt="Card image cap">
                     </div>
                 </div>
                 <h5 class="card-header">{{ managerStats['clubname'] }}</h5> 
                 <ul class="list-group list-group-flush">
                     <li class="list-group-item">Age: {{ managerStats['managerage'] }}</li>
-                    <li class="list-group-item">Board Confidence: {{ managerStats['confidence'] }}</li>
+                    <li class="list-group-item">Board Confidence: {{ managerStats['confidence'] }}%</li>
+                    <li class="list-group-item">Budget: £{{ managerStats['budget'] }}m</li>
                     <li class="list-group-item">Club Rank: {{ managerStats['clubrank'] }}</li>
                     <li class="list-group-item">Club Rating: {{ managerStats['clubovr'] }}</li>
                 </ul>
@@ -115,6 +145,7 @@
                 <div class="sticker">
                     <div class="avatar-holder">
                         <img src="static/img/flags/{{ starAtt['flag'] }}" style="width:30px; height=20px; margin:5px;"/>
+                        <h4 class="clubTitle" style="width: auto; height: 20px; float: right; margin: 5px;font-size: small;">&#x2B50; ATT</h4>
                         <img class="card-img-top" src="https://avatars.dicebear.com/v2/male/{{ starAtt['playername'] }}.svg" alt="Card image cap">
                     </div>
                 </div>
@@ -133,6 +164,7 @@
                 <div class="sticker">
                     <div class="avatar-holder">
                         <img src="static/img/flags/{{ starDef['flag'] }}" style="width:30px; height=20px; margin:5px;"/>
+                        <h4 class="clubTitle" style="width: auto; height: 20px; float: right; margin: 5px;font-size: small;">&#x2B50; DEF</h4>
                         <img class="card-img-top" src="https://avatars.dicebear.com/v2/male/{{ starDef['playername'] }}.svg" alt="Card image cap">
                     </div>
                 </div>
@@ -155,6 +187,7 @@
                     <th>Player</th>
                     <th>Age</th>
                     <th>Ovr</th>
+                    <th>Goals</th>
                 </tr>
             </thead>
             <tbody>
@@ -165,7 +198,8 @@
                         <td>{{ player["pos"] }}</td>
                         <td>{{ player["name"] }}</td>
                         <td>{{ player["age"] }}</td>
-                        <td>{{ player["ovr"] }}</td>
+                        <td><div style="width: 100%; height: 50%; border: solid 1px grey;"><div style="font-size: small;height: 100%; width:{{ player['ovr'] * 5 }}%; background: {{ managerStats['primary']}}; color: {{ managerStats['secondary'] }}">{{ round(player["ovr"]) }}</div></div></td>
+                        <td>{{ player["goals"] }}</td>
                     </tr>
                 {% endfor %}
             </tbody>
@@ -290,6 +324,7 @@
 <form action="/sell" id="sellform" method="post" style="display: none;">
     <input name="pl_id" id="pl_id">
     <input name="cl_id" id="cl_id">
+    <input name="pl_cost" id="pl_cost">
 </form>
 <script>
     function showEmail(obj) {
@@ -298,6 +333,7 @@
         var subject = obj['subject'];
         var read = obj['read'];
         var msg_id = obj['message_id'];
+        var offer = obj['offer']
 
         $(document).find('#eTitle').text(`${sender} — ${subject}`);
         $(document).find('#from').text(sender);
@@ -305,70 +341,71 @@
         $(document).find('#body').text(obj['body']);
 
         $('#newsModal').on('show.bs.modal', function (event) {
-
-            if (msg_id > 3 && msg_id < 7) {
-                if (read === 0) {
-                    document.getElementById("sell").style.display = "inline-block";
-                    document.getElementById("closeMail").textContent = "Reject";
-                    document.getElementsByName("pl_id")[1].value = obj['player_id'];
-                    document.getElementsByName("cl_id")[1].value = obj['club_id'];
-
-                    var sellform = document.getElementById('sellform');
-
-                    // Unbind any previously cancelled events and fire confirmation message
-                    $(document).off('click', '#sell').on('click', '#sell', function (event) {
-                            if (!confirm("Are you sure you want to sell this player?")) {
-                                sellform.reset();
-                                return false;
-                            }
-                            else {
-                                sellform.submit();
-                                return true;
-                            }
-                    });
-                }
-            else {
-                    document.getElementById("sell").style.display = "none";
-                    document.getElementById("offertext").style.display = "inline-block";
-                }
-            }
-        else {
-                document.getElementById("sell").style.display = "none";
-                document.getElementById("offertext").style.display = "none";
-                document.getElementById("closeMail").textContent = "Cancel";
-            }
+            if (read == 0) {
+                form = document.createElement("form");
+                form.method = "post";
+                form.action = "/read";
+                form.setAttribute("id", "read");
+                form.setAttribute("style", "display:none;")
+                input = document.createElement("input");
+                input.setAttribute("name", "rstatus");
+                input.setAttribute("value", 1);
+                form.appendChild(input);
+                input2 = document.createElement("input");
+                input2.setAttribute("name", "mail_id");
+                input2.setAttribute("value", obj["news_id"]);
+                form.appendChild(input2);
+                document.body.appendChild(form)
+                $.ajax({
+                    url : "/read",
+                    data : $('#read').serialize(),
+                    type : 'POST',
+                    success: function(response) {
+                        console.log(response);
+                        read = 1;
+                        document.getElementById(`ricon${obj['news_id']}`).innerHTML = "<i class='far fa-envelope-open'>";
+                        document.getElementById(`eRow${obj['news_id']}`).style.fontWeight = "normal";
+                        form.remove();
+                    },
+                    error: function(error) {
+                        console.log(error);
+                    }
+                });
+             }
         });
+        if (msg_id > 3 && msg_id < 7) {
+            if (read === 0) {
+                document.getElementById("sell").style.display = "inline-block";
+                document.getElementById("closeMail").textContent = "Reject";
+                document.getElementsByName("pl_id")[1].value = obj['player_id'];
+                document.getElementsByName("cl_id")[1].value = obj['club_id'];
+                document.getElementsByName("pl_cost")[1].value = obj['offer'];
 
-        if (read == 0) {
-            form = document.createElement("form");
-            form.method = "post";
-            form.action = "/read";
-            form.setAttribute("id", "read");
-            form.setAttribute("style", "display:none;")
-            input = document.createElement("input");
-            input.setAttribute("name", "rstatus");
-            input.setAttribute("value", 1);
-            form.appendChild(input);
-            input2 = document.createElement("input");
-            input2.setAttribute("name", "mail_id");
-            input2.setAttribute("value", obj["news_id"]);
-            form.appendChild(input2)
-            document.body.appendChild(form)
-            $.ajax({
-                url : "/read",
-                data : $('#read').serialize(),
-                type : 'POST',
-                success: function(response) {
-                    console.log(response);
-                    read = 1;
-                    document.getElementById(`ricon${obj['news_id']}`).innerHTML = "<i class='far fa-envelope-open'>";
-                    document.getElementById(`eRow${obj['news_id']}`).style.fontWeight = "normal";
-                    form.remove();
-                },
-                error: function(error) {
-                    console.log(error);
-                }
-            });
+                var sellform = document.getElementById('sellform');
+                
+
+                // Unbind any previously cancelled events and fire confirmation message
+                $(document).off('click', '#sell').on('click', '#sell', function (event) {
+                    if (!confirm("Are you sure you want to sell this player?")) {
+                        sellform.reset();
+                        return false;
+                    }
+                    else {
+                        console.log(document.getElementsByName("pl_cost"))
+                        sellform.submit();
+                        return true;
+                    }
+                });
+            }
+            else {
+                document.getElementById("sell").style.display = "none";
+                document.getElementById("offertext").style.display = "inline-block";
+            }
+        }
+        else {
+            document.getElementById("sell").style.display = "none";
+            document.getElementById("offertext").style.display = "none";
+            document.getElementById("closeMail").textContent = "Cancel";
         }
     }
 

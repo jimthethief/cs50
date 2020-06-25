@@ -101,7 +101,7 @@ Teams = {
     "Lannister City": {"club_id": 2, "rank": 2, "primary-color": "LightSkyBlue", "secondary-color": "#1C2C5B", "ovr": randint(19, 20), "formation": "3-5-2", "manager": nameFaker("es_ES"), "desc": "Owned by an oil baron, probably.", "attendance": 0.5, "capacity": 56000, "rival": 6},
     "Kensington Gentlemen": {"club_id": 3, "rank": 3, "primary-color": "RoyalBlue", "secondary-color": "white", "ovr": randint(17, 18), "formation": "4-4-2", "manager": nameFaker(choices(nations, nationWeights)[0]['nat_code']), "desc": "Know how to play but don\'t like to get their shorts dirty.", "attendance": 0.6, "capacity": 42000, "rival": 5}, 
     "London Hipsters": {"club_id": 4, "rank": 4, "primary-color": "FireBrick", "secondary-color": "Azure", "ovr": randint(16, 17), "formation": "4-3-3", "manager": nameFaker(choices(nations, nationWeights)[0]['nat_code']), "desc": "Have the latest iPhone and know all the best coffee places.", "attendance": 0.5, "capacity": 60000, "rival": 9},
-    "Celt Crabits": {"club_id": 5, "rank": 5, "primary-color": "White", "secondary-color": "SeaGreen", "ovr": randint(15, 17), "formation": "4-4-2", "manager": nameFaker("en_GB"), "desc": "Gie us a wee swally an haud yer wheesht.", "attendance": 0.7, "capacity": 60000, "rival": 3},
+    "Celt Crabits": {"club_id": 5, "rank": 5, "primary-color": "white", "secondary-color": "SeaGreen", "ovr": randint(15, 17), "formation": "4-4-2", "manager": nameFaker("en_GB"), "desc": "Gie us a wee swally an haud yer wheesht.", "attendance": 0.7, "capacity": 60000, "rival": 3},
     "North United": {"club_id": 6, "rank": 6, "primary-color": "#DA291C", "secondary-color": "black", "ovr": randint(15, 17), "formation": "4-5-1", "manager": nameFaker("no_NO"), "desc": "Used to win everything before having an existential crisis.", "attendance": 0.4, "capacity": 76000, "rival": 2},
     "Feral Foxes": {"club_id": 7, "rank": 7, "primary-color": "#0053A0", "secondary-color": "#FDBE11", "ovr": randint(14, 15), "formation": "4-5-1", "manager": nameFaker("it_IT"), "desc": "Were strongly linked to crisps before they rebranded and won the league that time.", "attendance": 0.6, "capacity": 32000, "rival": 8},
     "Brummy Howlers": {"club_id": 8, "rank": 8, "primary-color": "#FDB913", "secondary-color": "black", "ovr": randint(12, 15), "formation": "4-3-3", "manager": nameFaker("pt_PT"), "desc": "Cause a few upsets. Mostly Portuguese.", "attendance": 0.5, "capacity": 32000, "rival": 7},
@@ -112,7 +112,7 @@ Teams = {
     "Rocky Rovers": {"club_id": 13, "rank": 13, "primary-color": "#009EE0", "secondary-color": "white", "ovr": randint(12, 14), "formation": "4-3-3", "manager": "Tony Mohawk", "desc": "We won the league once, you know.", "attendance": 0.5, "capacity": 32000, "rival": 15},
     "Sherwood Goats": {"club_id": 14, "rank": 14, "primary-color": "white", "secondary-color": "#231F20", "ovr": randint(9, 11), "formation": "4-4-2", "manager": nameFaker(choices(nations, nationWeights)[0]['nat_code']), "desc": "Club with a proud history and an indifferent present.", "attendance": 0.4, "capacity": 34000, "rival": 16},
     "Claret Coopers": {"club_id": 15, "rank": 15, "primary-color": "#80BFFF", "secondary-color": "Maroon", "ovr": randint(7, 10), "formation": "4-4-2", "manager": nameFaker("en_GB"), "desc": "Above average height. Manager won\'t stand for anything fancy.", "attendance": 0.4, "capacity": 23000, "rival": 13},
-    "Boozy Brewers": {"club_id": 16, "rank": 16, "primary-color": "#FDE92B", "secondary-color": "231F20", "ovr": randint(6, 11), "formation": "4-5-1", "manager": nameFaker(choices(nations, nationWeights)[0]['nat_code']), "desc": "Love a good pint and smell faintly of marmite.", "attendance": 0.3, "capacity": 7000, "rival": 14},
+    "Boozy Brewers": {"club_id": 16, "rank": 16, "primary-color": "#FDE92B", "secondary-color": "#231F20", "ovr": randint(6, 11), "formation": "4-5-1", "manager": nameFaker(choices(nations, nationWeights)[0]['nat_code']), "desc": "Love a good pint and smell faintly of marmite.", "attendance": 0.3, "capacity": 7000, "rival": 14},
     "Wearside Macks": {"club_id": 17, "rank": 17, "primary-color": "#EB172B", "secondary-color": "#211E1E", "ovr": randint(4, 6), "formation": "4-5-1", "manager": nameFaker(choices(nations, nationWeights)[0]['nat_code']), "desc": "Things can only get better... Oh, wait.", "attendance": 0.3, "capacity": 49000, "rival": 11},
     "Middlebrook Mill": {"club_id": 18, "rank": 18, "primary-color": "white", "secondary-color": "#263C7E", "ovr": randint(2, 5), "formation": "4-3-3", "manager": nameFaker("en_GB"), "desc": "Deeply in debt but struggling on.", "attendance": 0.3, "capacity": 29000, "rival": 19},
     "Seaside Satsumas": {"club_id": 19, "rank": 19, "primary-color": "#FF5F00", "secondary-color": "white", "ovr": randint(1, 4), "formation": "4-4-2", "manager": nameFaker("en_GB"), "desc": "The Vegas of the North but without the money or glamour.", "attendance": 0.2, "capacity": 17000, "rival": 18},
@@ -137,24 +137,18 @@ def makePlayer(pos, num, team):
 
 def makeSquad(team):
     formation = Teams[team]["formation"].split("-")
-    squad = []
-    squadnum = 1
     for pos in range(1):
-        gk = makePlayer("GK", squadnum, team)
+        gk = makePlayer("GK", team)
         squad.append(gk)
-        squadnum += 1
     for pos in range(0, int(formation[0])):
-        df = makePlayer("DEF", squadnum, team)
+        df = makePlayer("DEF", team)
         squad.append(df)
-        squadnum += 1
     for pos in range(0, int(formation[1])):
-        md = makePlayer("MID", squadnum, team)
+        md = makePlayer("MID", team)
         squad.append(md)
-        squadnum += 1
     for pos in range(0, int(formation[2])):
-        at = makePlayer("ATT", squadnum, team)
+        at = makePlayer("ATT", team)
         squad.append(at)
-        squadnum += 1
     
     return squad
 
@@ -167,7 +161,7 @@ def makeAttr(team):
     pl_attr["technique"] = choices(attribute, punterRating(Teams[team]['ovr']))[0]
     pl_attr["potential"] = choices(attribute, punterRating(Teams[team]['ovr']))[0]
     pl_attr["handsomeness"] = choices(attribute, punterRating(Teams[team]['ovr']))[0]
-    pl_attr["ovr"] = round(mean([pl_attr['speed'], pl_attr['strength'], pl_attr['technique'], pl_attr['potential'], pl_attr['handsomeness']])) 
+    pl_attr["ovr"] = mean([pl_attr['speed'], pl_attr['strength'], pl_attr['technique'], pl_attr['potential'], pl_attr['handsomeness']]) 
     pl_attr["value"] = playerValue(pl_attr['ovr'], pl_attr['handsomeness'], pl_attr['potential'])
     pl_attr["age"] = choices(ages, ageWeights)[0]
 

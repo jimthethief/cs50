@@ -1,7 +1,7 @@
 from datetime import date
 from random import randint
 from helpers import apology, login_required
-from generator import generateClubAttributes, generateFixtures, gotNews
+from generator import generateClubAttributes, generatePlayerAttributes, generateFixtures, updatePlayerAttributes, gotNews
 from randomiser import makePlayer, makeAttr
 from match import matchSetup, simMatch
 from cs50 import SQL
@@ -41,14 +41,103 @@ db = SQL("sqlite:///champgaffer.db")
 def office():
     """Manager Hub"""
 
+    # calculate club ovr
+    session['club_ovr'] = round(db.execute("SELECT AVG(ovr) FROM player_attr WHERE manager_id = ? AND club_id = 20;", session['id'])[0]['AVG(ovr)'])
+    db.execute("UPDATE club_attr SET ovr = ? WHERE manager_id = ? AND club_id = 20;", session['club_ovr'], session['id'])
+    
+    # query champgaffer.db for manager attributes
+    getManager = db.execute("SELECT name, age, managers.club_name, board_confidence, budget, season, current_season, matchday, rank, pos, primary_colour, secondary_colour, pld FROM managers JOIN club_attr ON managers.id = club_attr.manager_id JOIN clubs ON managers.club_id = clubs.club_id WHERE managers.id = ? AND club_attr.club_id = 20; ", 
+                            session['id'])
+
+    # check for end of season                         
+    if getManager[0]['pld'] == 18:
+        # query champgaffer.db for club attributes
+        clubs = db.execute("SELECT * FROM club_attr WHERE manager_id = ? AND club_id <= 20;",
+                             session['id'])
+        
+        # update manager attr (board confidence dependent on final standings - bonus for finishing top of either league)
+        leaguePos = getManager[0]['pos']
+
+        if leaguePos > 10 and leaguePos < 13 or leaguePos < 3:
+            getManager[0]['budget'] += (21 - leaguePos)
+            if getManager[0]['board_confidence'] <= 85:
+                getManager[0]['board_confidence'] += 15
+            else:
+                getManager[0]['board_confidence'] = 100
+        elif (getManager[0]['rank'] - leaguePos) >= 3:
+            getManager[0]['budget'] += (20 - leaguePos)
+            if getManager[0]['board_confidence'] <= 90:
+                getManager[0]['board_confidence'] += 10
+            else:
+                getManager[0]['board_confidence'] = 100
+        elif (getManager[0]['rank'] - leaguePos) <= -2:
+            getManager[0]['budget'] += ((20 - leaguePos) / 2)
+            if getManager[0]['board_confidence'] >= 10:
+                getManager[0]['board_confidence'] -= 10
+            else:
+                getManager[0]['board_confidence'] = 0
+
+        db.execute("UPDATE managers SET age = age + 1, current_season = current_season + 1, matchday = 1, budget = ?, board_confidence = ? WHERE id = ?;",
+                    getManager[0]['budget'], getManager[0]['board_confidence'], session['id'])
+        
+        db.execute("DELETE FROM news WHERE manager_id = ?;",
+                    session['id'])
+        
+        # call end of season news items
+        gotNews(session['id'], 21)
+        gotNews(session['id'], 22)
+
+        # generate updated attributes for all user players via generator.py
+        updatePlayerAttributes(session['id'])  
+
+        # update club ranks according to final league position
+        for club in clubs:
+            # calculate updated club ovr
+            club_ovr = round(db.execute("SELECT AVG(ovr) FROM player_attr WHERE manager_id = ? AND club_id = ?;", session['id'], club['club_id'])[0]['AVG(ovr)'])
+
+            new_rank = club['pos']
+            if club['pos'] == 11 or club['pos'] == 12:
+                new_rank -= 2
+            elif club['pos'] == 9 or club['pos'] == 10:
+                new_rank += 2
+
+            db.execute("UPDATE club_attr SET rank = :rank, pld = 0, gs = 0, ga = 0, pts = 0, pos = :rank, pos_track = :rank, ovr = :ovr WHERE club_id = :club AND manager_id = :manager;",
+                        rank=new_rank, ovr=club_ovr, club=club['club_id'], manager=club['manager_id'])
+
+        # generate new season fixtures via generator.py
+        generateFixtures(session["id"], session["clubname"], getManager[0]['current_season'] + 1)
+
+        #generate new season email via news.py
+        gotNews(session["id"], 1)
+
+    # manager attributes
+    session['managerStats'] = {
+        "managername": getManager[0]['name'],
+        "managerage": getManager[0]['age'],
+        "clubname": getManager[0]['club_name'],
+        "pos": getManager[0]['pos'],
+        "confidence": getManager[0]['board_confidence'],
+        "budget": getManager[0]['budget'],
+        "clubrank": getManager[0]['rank'],
+        "clubovr": session['club_ovr'],
+        "season": (getManager[0]['current_season'] - getManager[0]['season']) + 1,
+        "primary": getManager[0]['primary_colour'],
+        "secondary": getManager[0]['secondary_colour']
+    }
+    
+                
     # query champgaffer.db for news items and fixtures
     session["getEmails"] = db.execute("SELECT * FROM news WHERE manager_id = ? ORDER BY news_id DESC LIMIT 10;",
                                       session["id"])
-
+    
     # query champgaffer.db for player attributes
     session["getPlayers"] = db.execute("SELECT * FROM players JOIN player_attr ON players.player_id = player_attr.player_id WHERE player_attr.manager_id = :manager AND player_attr.club_id = 20 ORDER BY squad_num;",
                             manager=session["id"])
-
+    
+    # query champgaffer.db for goals scored
+    for player in session['getPlayers']:
+        player['goals'] = db.execute("SELECT count(*) AS goals FROM goals WHERE player_id=? AND manager_id=? AND season=?;", player['player_id'], session['id'], session['managerStats']['season'])[0]['goals']
+    
     # query champgaffer.db for star defender
     starDef = db.execute("SELECT name, age, nationality, flag, value, MAX(ovr) FROM players JOIN player_attr ON players.player_id = player_attr.player_id WHERE player_attr.player_id IN (SELECT player_attr.player_id FROM players JOIN player_attr ON players.player_id = player_attr.player_id WHERE pos = \'GK\' OR pos = \'DEF\') AND club_id = 20 AND manager_id = ?;", 
                          session["id"])
@@ -56,27 +145,11 @@ def office():
     # query champgaffer.db for star attacker
     starAtt = db.execute("SELECT name, age, nationality, flag, value, MAX(ovr) FROM players JOIN player_attr ON players.player_id = player_attr.player_id WHERE player_attr.player_id IN (SELECT player_attr.player_id FROM players JOIN player_attr ON players.player_id = player_attr.player_id WHERE pos = \'MID\' OR pos = \'ATT\') AND club_id = 20 AND manager_id = ?;", 
                          session["id"])
-                            
-    # query champgaffer.db for manager attributes
-    getManager = db.execute("SELECT name, age, managers.club_name, board_confidence, budget, season, current_season, matchday, rank, ovr, primary_colour, secondary_colour FROM managers JOIN club_attr ON managers.id = club_attr.manager_id JOIN clubs ON managers.club_id = clubs.club_id WHERE managers.id = ? AND club_attr.club_id = 20; ", 
-                            session['id'])
 
     # query champgaffer.db for fixtures
     session["getFixtures"] = db.execute("SELECT home, away FROM fixtures JOIN managers ON fixtures.manager_id = managers.id WHERE (managers.id = ? AND week >= matchday) AND (home = managers.club_name OR away = managers.club_name) LIMIT 10;",
                              session["id"])
     
-    session['managerStats'] = {
-        "managername": getManager[0]['name'],
-        "managerage": getManager[0]['age'],
-        "clubname": getManager[0]['club_name'],
-        "confidence": getManager[0]['board_confidence'],
-        "budget": getManager[0]['budget'],
-        "clubrank": getManager[0]['rank'],
-        "clubovr": getManager[0]['ovr'],
-        "season": getManager[0]['current_season'] - getManager[0]['season'],
-        "primary": getManager[0]['primary_colour'],
-        "secondary": getManager[0]['secondary_colour']
-    }
 
     session['starDef'] = {
         "playername": starDef[0]['name'],
@@ -96,6 +169,7 @@ def office():
         "ovr": starAtt[0]['MAX(ovr)']
     }
 
+    # construct mock email address
     session['email'] = str(session['managerStats']['managername'] + "@" + session['managerStats']['clubname'] + ".co.uk").lower().replace(" ", "")
 
     return render_template('index.html',
@@ -105,7 +179,8 @@ def office():
                            managerStats=session['managerStats'],
                            starAtt=session['starAtt'],
                            starDef=session['starDef'],
-                           email=session['email'])
+                           email=session['email'],
+                           round=round)
 
 
 @app.route("/transfers", methods=["GET", "POST"])
@@ -113,31 +188,38 @@ def office():
 def transfers():
     """Search and buy players"""
 
+    # query club name for all teams except user
     session["getClubs"] = db.execute("SELECT club_name FROM clubs WHERE club_id != 20 ORDER BY club_id DESC;")
+    
+    # current user funds
     session["funds"] = db.execute("SELECT budget FROM managers WHERE id = ?;",
                                   session["id"])[0]
 
     if request.method == "GET":
-        session["getPlayers"] = db.execute("SELECT players.player_id, name, nationality, flag, players.pos, clubs.club_id, player_attr.manager_id, squad_num, age, speed, strength, technique, potential, handsomeness, player_attr.ovr, value, club_name, primary_colour, secondary_colour, club_attr.rank FROM players JOIN player_attr ON players.player_id = player_attr.player_id JOIN clubs on player_attr.club_id = clubs.club_id JOIN club_attr ON player_attr.club_id = club_attr.club_id WHERE player_attr.manager_id = ? AND clubs.club_id != 20 ORDER BY value DESC;", 
-                                           session["id"])
+        # query champgaffer.db for all players not in user team
+        session["getPlayers"] = db.execute("SELECT players.player_id, name, nationality, flag, players.pos, clubs.club_id, player_attr.manager_id, squad_num, age, speed, strength, technique, potential, handsomeness, player_attr.ovr, value, club_name, primary_colour, secondary_colour, club_attr.rank FROM players JOIN player_attr ON players.player_id = player_attr.player_id JOIN clubs on player_attr.club_id = clubs.club_id JOIN club_attr ON player_attr.club_id = club_attr.club_id WHERE (player_attr.manager_id = :user AND club_attr.manager_id = :user) AND clubs.club_id != 20 ORDER BY value DESC;", 
+                                           user=session["id"])
         
         return render_template('transfers.html',
                                getPlayers=session["getPlayers"],
                                getClubs=session["getClubs"],
-                               funds=session["funds"]['budget'])
+                               funds=session["funds"]['budget'],
+                               round=round)
     else:
         # save search request in session variable
         session["name_search"] = request.form.get("name_search")
         session["club_search"] = request.form.get("club_search")
         session["pos_search"] = request.form.get("pos_search")
         session["val_search"] = int(request.form.get("val_search"))
+
+        # set ovr search term to 1 if field left blank in search form
         if request.form.get("ovr_search") == "":
             session["ovr_search"] = 1
         else:
             session["ovr_search"] = int(request.form.get("ovr_search"))
 
-        
-        session["getPlayers"] = db.execute("SELECT players.player_id, name, nationality, flag, players.pos, clubs.club_id, player_attr.manager_id, squad_num, age, speed, strength, technique, potential, handsomeness, player_attr.ovr, value, club_name, primary_colour, secondary_colour, club_attr.rank FROM players JOIN player_attr ON players.player_id = player_attr.player_id JOIN clubs on player_attr.club_id = clubs.club_id JOIN club_attr ON player_attr.club_id = club_attr.club_id WHERE player_attr.manager_id = :user AND name LIKE :name AND club_name LIKE :club AND players.pos LIKE :pos AND player_attr.ovr >= :ovr AND value <= :val AND clubs.club_id != 20 ORDER BY value DESC;",
+        # search for players that meet form criteria
+        session["getPlayers"] = db.execute("SELECT players.player_id, name, nationality, flag, players.pos, clubs.club_id, player_attr.manager_id, squad_num, age, speed, strength, technique, potential, handsomeness, player_attr.ovr, value, club_name, primary_colour, secondary_colour, club_attr.rank FROM players JOIN player_attr ON players.player_id = player_attr.player_id JOIN clubs on player_attr.club_id = clubs.club_id JOIN club_attr ON player_attr.club_id = club_attr.club_id WHERE (player_attr.manager_id = :user AND club_attr.manager_id = :user) AND (name LIKE :name AND club_name LIKE :club AND players.pos LIKE :pos AND player_attr.ovr >= :ovr AND value <= :val) AND clubs.club_id != 20 ORDER BY value DESC;",
                                            user=session["id"], name=('%{}%'.format(session['name_search']),), 
                                            club=('%{}%'.format(session['club_search']),), pos=('%{}%'.format(session['pos_search']),), 
                                            ovr=session['ovr_search'], val=session['val_search'])
@@ -151,7 +233,8 @@ def transfers():
         return render_template('transfers.html',
                                getPlayers=session["getPlayers"],
                                getClubs=session['getClubs'],
-                               funds=session["funds"]['budget'])
+                               funds=session["funds"]['budget'],
+                               round=round)
     
     return apology("Oops, something went awry", 403)
 
@@ -160,19 +243,23 @@ def transfers():
 @login_required
 def matchday():
     """Select line-up/formation and show opposition"""
+
     if request.method == "GET":
+        # retrieve user squad info
         session["squad"] = db.execute("SELECT * FROM players JOIN player_attr ON players.player_id = player_attr.player_id WHERE player_attr.manager_id = ? AND player_attr.club_id = 20 ORDER BY squad_num;",
                                     session["id"])
-
+        
+        # query database for fixture
         session["fixture"] = db.execute("SELECT fixture_id, week, home, away, played FROM fixtures JOIN managers ON fixtures.manager_id = managers.id WHERE (managers.id = ? AND week = matchday) AND (home = managers.club_name OR away = managers.club_name);",
                                         session["id"])[0]
 
+        # establish if user team is home or away and retrieve opponent info
         if session["fixture"]["home"] == session["clubname"]:
             session["opponent"] = session["fixture"]["away"]
         else:
             session["opponent"] = session["fixture"]["home"]
         
-        session["getOpponent"] = db.execute("SELECT club_name, primary_colour, secondary_colour, attendance, capacity, ovr, formation, pts, pos, rival, clubs.club_id FROM clubs JOIN club_attr ON clubs.club_id = club_attr.club_id WHERE clubs.club_name = ? AND manager_id = ?;",
+        session["getOpponent"] = db.execute("SELECT * FROM clubs JOIN club_attr ON clubs.club_id = club_attr.club_id WHERE clubs.club_name = ? AND manager_id = ?;",
                                             session["opponent"], session["id"])[0]
 
         session["opponentSquad"] = db.execute("SELECT * FROM players JOIN player_attr ON players.player_id = player_attr.player_id WHERE player_attr.manager_id = ? AND player_attr.club_id = ? ORDER BY squad_num;",
@@ -185,20 +272,26 @@ def matchday():
                                 opponent=session["getOpponent"],
                                 opponentSquad=session["opponentSquad"],
                                 oppSquadSize=len(session["opponentSquad"]))
-    else:
-        
-        return redirect("/match")
+
 
 
 @app.route("/match", methods=["GET", "POST"])
 @login_required
 def match():
     """Simulate match"""
+
     if request.method == "POST":
+        # check that team selection has been entered
+        if request.form.get("selection") == "undefined":
+            flash(f"Please enter a valid teamsheet for today's game.", 'alert-danger')
+            return redirect('/matchday')
+
+        # simulate match only if fixture hasn't already been played
         if session['fixture']['played'] == 0:
             session["userClub"] = db.execute("SELECT * FROM clubs JOIN club_attr ON clubs.club_id = club_attr.club_id WHERE manager_id = ? AND clubs.club_id = 20;",
                                             session["id"])[0]
 
+            # initialize home/away info for simulation functions
             if session["fixture"]["home"] == session["clubname"]:
                 session["userSquad"] = json.loads(request.form.get("selection"))
                 session['homeName'] = session["clubname"]
@@ -220,16 +313,19 @@ def match():
                 homeInfo = session["getOpponent"]
                 awayInfo = session["userClub"]
             
+            # save order of lineup selected in match setup to database by updating squad numbers
             squadnum = 1
             for player in session["userSquad"]:
                 db.execute("UPDATE player_attr SET squad_num = ? WHERE player_id = ? AND manager_id = ?;",
                 squadnum, player["player_id"], session['id'])
                 squadnum += 1
 
+            # match set up and simulation functions - match.py
             session['home'], homeTeamList = matchSetup(homeLineup, homeFormation, homeInfo)
             session['away'], awayTeamList = matchSetup(awayLineup, awayFormation, awayInfo)
             session['homeGls'], session['awayGls'], session['homeScorers'], session['awayScorers'], session['attendance'] = simMatch(session['home'], homeTeamList, session['away'], awayTeamList)
 
+            # establish team pts and save match outcome to champgaffer.db
             if session['homeGls'] > session['awayGls']:
                 homePts = 3
                 awayPts = 0
@@ -240,20 +336,45 @@ def match():
                 homePts = 1
                 awayPts = 1
 
+
             db.execute("UPDATE club_attr SET pld = :pld, gs = :gs, ga = :ga, pts = :pts WHERE manager_id = :id AND club_id = :club_id",
-                        pld=session['fixture']['week'], gs=session['homeGls'], ga=session['awayGls'], pts=homeInfo['pts'] + homePts, id=session['id'], club_id=homeInfo['club_id'])
+                        pld=session['fixture']['week'], gs=homeInfo['gs'] + session['homeGls'], ga=homeInfo['ga'] + session['awayGls'], 
+                        pts=homeInfo['pts'] + homePts, id=session['id'], club_id=homeInfo['club_id'])
             
             db.execute("UPDATE club_attr SET pld = :pld, gs = :gs, ga = :ga, pts = :pts WHERE manager_id = :id AND club_id = :club_id",
-                        pld=session['fixture']['week'], gs=session['awayGls'], ga=session['homeGls'], pts=awayInfo['pts'] + awayPts, id=session['id'], club_id=awayInfo['club_id'])
+                        pld=session['fixture']['week'], gs=awayInfo['gs'] + session['awayGls'], ga=awayInfo['ga'] + session['homeGls'], 
+                        pts=awayInfo['pts'] + awayPts, id=session['id'], club_id=awayInfo['club_id'])
 
             session['fixture']['played'] = 1
 
             db.execute("UPDATE fixtures SET played = :played WHERE fixture_id = :fixture_id AND manager_id = :manager_id",
                         played=session['fixture']['played'], fixture_id=session['fixture']['fixture_id'], manager_id=session['id'])
             
+            # record goalscorers in goals table
             for scorer in session['homeScorers'] + session['awayScorers']:
                 db.execute("INSERT INTO goals(manager_id, player_id, week, season) VALUES(:manager_id, :player_id, :week, :season)",
-                            manager_id=session['id'], player_id=scorer['player_id'], week=session['fixture']['week'], season=session['managerStats']['season'])
+                            manager_id=session['id'], player_id=scorer['player_id'], week=session['fixture']['week'], 
+                            season=session['managerStats']['season'])
+
+            # update board confidence dependent on result
+            if homePts == 1:
+                if session['managerStats']['confidence'] <= 98:
+                        session['managerStats']['confidence'] += 2
+                else:
+                    session['managerStats']['confidence'] = 100
+            elif homePts == 3 and session["fixture"]["home"] == session["clubname"] or awayPts == 3 and session['fixture']['away'] == session["clubname"]:
+                if session['managerStats']['confidence'] <= 95:
+                    session['managerStats']['confidence'] += 5
+                else:
+                    session['managerStats']['confidence'] = 100
+            else:
+                if session['managerStats']['confidence'] >= 5:
+                    session['managerStats']['confidence'] -= 5
+                else:
+                    session['managerStats']['confidence'] = 0
+
+            db.execute("UPDATE managers SET board_confidence = ? WHERE id = ?",
+                        session['managerStats']['confidence'], session['id'])
 
             return render_template('match.html',
                                 homeName=session['homeName'],
@@ -264,7 +385,7 @@ def match():
                                 homeScorers=session['homeScorers'],
                                 awayScorers=session['awayScorers'])
         else:
-            return redirect("/results")
+            return redirect("/matchday")
     else:
         return redirect("/matchday")
 
@@ -272,79 +393,97 @@ def match():
 @login_required
 def results():
     """Simulate non-user matches"""
-    session['getResults'] =  db.execute("SELECT fixture_id, week, home, away, played FROM fixtures JOIN managers ON fixtures.manager_id = managers.id WHERE (managers.id = ? AND week = matchday) AND (home != managers.club_name AND away != managers.club_name);",
-                                        session["id"])
+
+    # if user match not yet played - redirect to matchday screen
+    session['fixture'] = db.execute("SELECT fixture_id, week, home, away, played FROM fixtures JOIN managers ON fixtures.manager_id = managers.id WHERE (fixtures.manager_id = :id AND managers.id = :id AND week = matchday) AND (home = managers.club_name OR away = managers.club_name);",
+                                    id=session["id"])[0]
     
-    if all(fixture['played'] == 0 for fixture in session['getResults']):                 
-        session['topLeagueResults'] = []
-        session['subLeagueResults'] = []
+    if session['fixture']['played'] == 0:
+        return redirect("/matchday")
+
+    else:
+        session['getResults'] =  db.execute("SELECT fixture_id, week, home, away, played FROM fixtures JOIN managers ON fixtures.manager_id = managers.id WHERE (managers.id = ? AND week = matchday) AND (home != managers.club_name AND away != managers.club_name);",
+                                            session["id"])
         
-        userResult = {'home': session['homeName'], 'away': session['awayName'], 'homeGls': session['homeGls'], 'awayGls': session['awayGls'], 'homeScorers': session['homeScorers'], 'awayScorers': session['awayScorers']}
-        
-        if session["userClub"]['pos'] <= 10:
-            session['topLeagueResults'].append(userResult)
+        # only simulate results if fixture hasn't already been played
+        if all(fixture['played'] == 0 for fixture in session['getResults']):                 
+            session['topLeagueResults'] = []
+            session['subLeagueResults'] = []
+            
+            userResult = {'home': session['homeName'], 'away': session['awayName'], 'homeGls': session['homeGls'], 'awayGls': session['awayGls'], 'homeScorers': session['homeScorers'], 'awayScorers': session['awayScorers']}
+            
+            session["userClub"] = db.execute("SELECT * FROM clubs JOIN club_attr ON clubs.club_id = club_attr.club_id WHERE manager_id = ? AND clubs.club_id = 20;",
+                                                session["id"])[0]
+
+            if session["userClub"]['pos'] <= 10:
+                session['topLeagueResults'].append(userResult)
+            else:
+                session['subLeagueResults'].append(userResult)
+
+            for fixture in session['getResults']:
+                homeSimName = fixture['home']
+                awaySimName = fixture['away']
+                homeSimInfo = db.execute("SELECT club_name, primary_colour, secondary_colour, attendance, capacity, ovr, formation, pos, gs, ga, pts, rival, clubs.club_id FROM clubs JOIN club_attr ON clubs.club_id = club_attr.club_id WHERE clubs.club_name = ? AND manager_id = ?;",
+                                        homeSimName, session["id"])[0]
+
+                homeSimTeam = db.execute("SELECT * FROM players JOIN player_attr ON players.player_id = player_attr.player_id WHERE player_attr.manager_id = ? AND player_attr.club_id = ? ORDER BY squad_num;",
+                                        session["id"], homeSimInfo["club_id"])[:11]
+
+                awaySimInfo = db.execute("SELECT club_name, primary_colour, secondary_colour, attendance, capacity, ovr, formation, pos, gs, ga, pts, rival, clubs.club_id FROM clubs JOIN club_attr ON clubs.club_id = club_attr.club_id WHERE clubs.club_name = ? AND manager_id = ?;",
+                                        awaySimName, session["id"])[0]
+
+                awaySimTeam = db.execute("SELECT * FROM players JOIN player_attr ON players.player_id = player_attr.player_id WHERE player_attr.manager_id = ? AND player_attr.club_id = ? ORDER BY squad_num;",
+                                        session["id"], awaySimInfo["club_id"])[:11]
+                
+                homeSimFormation = homeSimInfo['formation']
+                awaySimFormation = awaySimInfo['formation']
+
+                homeSim, homeSimTeamList = matchSetup(homeSimTeam, homeSimFormation, homeSimInfo)
+                awaySim, awaySimTeamList = matchSetup(awaySimTeam, awaySimFormation, awaySimInfo)
+                homeSimGls, awaySimGls, homeSimScorers, awaySimScorers, simAttendance = simMatch(homeSim, homeSimTeamList, awaySim, awaySimTeamList)
+                
+                if homeSimGls > awaySimGls:
+                    homeSimPts = 3
+                    awaySimPts = 0
+                elif awaySimGls > homeSimGls:
+                    homeSimPts = 0
+                    awaySimPts = 3
+                else:
+                    homeSimPts = 1
+                    awaySimPts = 1
+                
+                if homeSimInfo['pos'] <= 10:
+                    session['topLeagueResults'].append({'home': homeSimName, 'away': awaySimName, 'homeGls': homeSimGls, 'awayGls': awaySimGls, 'homeScorers': homeSimScorers, 'awayScorers': awaySimScorers})
+                else:
+                    session['subLeagueResults'].append({'home': homeSimName, 'away': awaySimName, 'homeGls': homeSimGls, 'awayGls': awaySimGls, 'homeScorers': homeSimScorers, 'awayScorers': awaySimScorers})
+                
+                db.execute("UPDATE club_attr SET pld = :pld, gs = :gs, ga = :ga, pts = :pts WHERE manager_id = :id AND club_id = :club_id;",
+                            pld=session['fixture']['week'], gs=homeSimInfo['gs'] + homeSimGls, ga=homeSimInfo['ga'] + awaySimGls, 
+                            pts=homeSimInfo['pts'] + homeSimPts, id=session['id'], club_id=homeSimInfo['club_id'])
+                
+                db.execute("UPDATE club_attr SET pld = :pld, gs = :gs, ga = :ga, pts = :pts WHERE manager_id = :id AND club_id = :club_id;",
+                            pld=session['fixture']['week'], gs=awaySimInfo['gs'] + awaySimGls, ga=awaySimInfo['ga'] + homeSimGls, 
+                            pts=awaySimInfo['pts'] + awaySimPts, id=session['id'], club_id=awaySimInfo['club_id'])
+
+                fixture['played'] = 1
+                session['matchday'] = session['fixture']['week'] + 1
+
+                db.execute("UPDATE fixtures SET played = :played WHERE fixture_id = :fixture_id AND manager_id = :manager_id;",
+                            played=fixture['played'], fixture_id=fixture['fixture_id'], manager_id=session['id'])
+
+                for scorer in homeSimScorers + awaySimScorers:
+                    db.execute("INSERT INTO goals(manager_id, player_id, week, season) VALUES(:manager_id, :player_id, :week, :season);",
+                                manager_id=session['id'], player_id=scorer['player_id'], week=session['fixture']['week'], 
+                                season=session['managerStats']['season'])
+
+                db.execute("UPDATE managers SET matchday = ? WHERE id = ?;",
+                            session['matchday'], session["id"])
+
+            return render_template('results.html',
+                                    topLeagueResults=session['topLeagueResults'],
+                                    subLeagueResults=session['subLeagueResults'])
         else:
-            session['subLeagueResults'].append(userResult)
-
-        for fixture in session['getResults']:
-            homeSimName = fixture['home']
-            awaySimName = fixture['away']
-            homeSimInfo = db.execute("SELECT club_name, primary_colour, secondary_colour, attendance, capacity, ovr, formation, pos, gs, ga, pts, rival, clubs.club_id FROM clubs JOIN club_attr ON clubs.club_id = club_attr.club_id WHERE clubs.club_name = ? AND manager_id = ?;",
-                                    homeSimName, session["id"])[0]
-
-            homeSimTeam = db.execute("SELECT * FROM players JOIN player_attr ON players.player_id = player_attr.player_id WHERE player_attr.manager_id = ? AND player_attr.club_id = ?;",
-                                    session["id"], homeSimInfo["club_id"])[:11]
-
-            awaySimInfo = db.execute("SELECT club_name, primary_colour, secondary_colour, attendance, capacity, ovr, formation, pos, gs, ga, pts, rival, clubs.club_id FROM clubs JOIN club_attr ON clubs.club_id = club_attr.club_id WHERE clubs.club_name = ? AND manager_id = ?;",
-                                    awaySimName, session["id"])[0]
-
-            awaySimTeam = db.execute("SELECT * FROM players JOIN player_attr ON players.player_id = player_attr.player_id WHERE player_attr.manager_id = ? AND player_attr.club_id = ?;",
-                                    session["id"], awaySimInfo["club_id"])[:11]
-            
-            homeSimFormation = homeSimInfo['formation']
-            awaySimFormation = awaySimInfo['formation']
-
-            homeSim, homeSimTeamList = matchSetup(homeSimTeam, homeSimFormation, homeSimInfo)
-            awaySim, awaySimTeamList = matchSetup(awaySimTeam, awaySimFormation, awaySimInfo)
-            homeSimGls, awaySimGls, homeSimScorers, awaySimScorers, simAttendance = simMatch(homeSim, homeSimTeamList, awaySim, awaySimTeamList)
-            
-            if homeSimGls > awaySimGls:
-                homeSimPts = 3
-                awaySimPts = 0
-            elif awaySimGls > homeSimGls:
-                homeSimPts = 0
-                awaySimPts = 3
-            else:
-                homeSimPts = 1
-                awaySimPts = 1
-            
-            if homeSimInfo['pos'] <= 10:
-                session['topLeagueResults'].append({'home': homeSimName, 'away': awaySimName, 'homeGls': homeSimGls, 'awayGls': awaySimGls, 'homeScorers': homeSimScorers, 'awayScorers': awaySimScorers})
-            else:
-                session['subLeagueResults'].append({'home': homeSimName, 'away': awaySimName, 'homeGls': homeSimGls, 'awayGls': awaySimGls, 'homeScorers': homeSimScorers, 'awayScorers': awaySimScorers})
-            
-            db.execute("UPDATE club_attr SET pld = :pld, gs = :gs, ga = :ga, pts = :pts WHERE manager_id = :id AND club_id = :club_id",
-                        pld=session['fixture']['week'], gs=homeSimInfo['gs'] + homeSimGls, ga=homeSimInfo['ga'] + awaySimGls, pts=homeSimInfo['pts'] + homeSimPts, id=session['id'], club_id=homeSimInfo['club_id'])
-            
-            db.execute("UPDATE club_attr SET pld = :pld, gs = :gs, ga = :ga, pts = :pts WHERE manager_id = :id AND club_id = :club_id",
-                        pld=session['fixture']['week'], gs=awaySimInfo['gs'] + awaySimGls, ga=awaySimInfo['ga'] + homeSimGls, pts=awaySimInfo['pts'] + awaySimPts, id=session['id'], club_id=awaySimInfo['club_id'])
-
-            fixture['played'] = 1
-            session['matchday'] = session['fixture']['week'] + 1
-
-            db.execute("UPDATE fixtures SET played = :played WHERE fixture_id = :fixture_id AND manager_id = :manager_id",
-                        played=fixture['played'], fixture_id=fixture['fixture_id'], manager_id=session['id'])
-
-            for scorer in homeSimScorers + awaySimScorers:
-                db.execute("INSERT INTO goals(manager_id, player_id, week, season) VALUES(:manager_id, :player_id, :week, :season)",
-                            manager_id=session['id'], player_id=scorer['player_id'], week=session['fixture']['week'], season=session['managerStats']['season'])
-
-            db.execute("UPDATE managers SET matchday = ? WHERE id = ?",
-                        session['matchday'], session["id"])
-
-    return render_template('results.html',
-                            topLeagueResults=session['topLeagueResults'],
-                            subLeagueResults=session['subLeagueResults'])
+            redirect('/teletable')
    
 
 @app.route("/teletable", methods=["GET"])
@@ -352,60 +491,78 @@ def results():
 def teletable():
     """Display teletext standings"""
 
-    session["getTopTable"] = db.execute("SELECT ROW_NUMBER () OVER (ORDER BY pts DESC, gs - ga DESC, gs DESC) row_num, club_name, club_attr.club_id, rank, pld, gs, ga, (gs - ga) AS gd, pts, pos, pos_track FROM club_attr JOIN clubs on club_attr.club_id = clubs.club_id WHERE club_attr.club_id IN (SELECT rank FROM club_attr WHERE manager_id = ? AND rank < 11) ORDER BY pts DESC, gd DESC, gs DESC, pos ASC;",
+    session["getTopTable"] = db.execute("SELECT ROW_NUMBER () OVER (ORDER BY pts DESC, gs - ga DESC, gs DESC) row_num, club_name, club_attr.club_id, rank, pld, gs, ga, (gs - ga) AS gd, pts, pos, pos_track FROM club_attr JOIN clubs on club_attr.club_id = clubs.club_id WHERE manager_id = ? AND rank < 11 ORDER BY pts DESC, gd DESC, gs DESC, pos ASC;",
                                         session["id"])
 
-    session["getSubTable"] = db.execute("SELECT ROW_NUMBER () OVER (ORDER BY pts DESC, gs - ga DESC, gs DESC) row_num, club_name, club_attr.club_id, rank, pld, gs, ga, (gs - ga) AS gd, pts, pos, pos_track FROM club_attr JOIN clubs on club_attr.club_id = clubs.club_id WHERE club_attr.club_id IN (SELECT rank FROM club_attr WHERE manager_id = ? AND rank > 10 AND rank < 21) ORDER BY pts DESC, gd DESC, gs DESC, pos ASC;",
+    session["getSubTable"] = db.execute("SELECT ROW_NUMBER () OVER (ORDER BY pts DESC, gs - ga DESC, gs DESC) row_num, club_name, club_attr.club_id, rank, pld, gs, ga, (gs - ga) AS gd, pts, pos, pos_track FROM club_attr JOIN clubs on club_attr.club_id = clubs.club_id WHERE manager_id = ? AND rank > 10 AND rank < 21 ORDER BY pts DESC, gd DESC, gs DESC, pos ASC;",
                                         session["id"])
 
-    session["userTeam"] = db.execute("SELECT * FROM managers WHERE id = ?",
-                                    session["id"])[0]['club_name']
-
+    # update club league positions
     for club in session['getTopTable']:
-        db.execute("UPDATE club_attr SET pos_track = :prev_pos, pos = :pos WHERE manager_id = :id AND club_id = :club_id",
+        db.execute("UPDATE club_attr SET pos_track = :prev_pos, pos = :pos WHERE manager_id = :id AND club_id = :club_id;",
                     prev_pos=club['pos'], pos=club['row_num'], id=session["id"], club_id=club["club_id"])
     
     for club in session['getSubTable']:
-        db.execute("UPDATE club_attr SET pos_track = :prev_pos, pos = :pos WHERE manager_id = :id AND club_id = :club_id",
+        db.execute("UPDATE club_attr SET pos_track = :prev_pos, pos = :pos WHERE manager_id = :id AND club_id = :club_id;",
                     prev_pos=club['pos'], pos=club['row_num'] + 10, id=session["id"], club_id=club["club_id"])
     
-    if session["getTopTable"][0]['pld'] < 18:
-        if session["getTopTable"][0]['pld'] == 9:
-            leaguePos = db.execute("SELECT pos FROM club_attr WHERE club_id=20 AND manager_id=?",
-                                    session['id'])[0]['pos']
-            if session['managerStats']['clubrank'] - leaguePos >= 5:
-                if session['managerStats']['confidence'] <= 90:
-                    session['managerStats']['confidence'] += 10
-                else:
-                    session['managerStats']['confidence'] = 100
-                
-                db.execute("UPDATE managers SET board_confidence = ? WHERE id = ?",
-                           session['managerStats']['confidence'], session['id'])
-    gotNews(session["id"])
+    # update board confidence halfway through season
+    if session["getTopTable"][0]['pld'] == 9:
+        leaguePos = db.execute("SELECT pos FROM club_attr WHERE club_id=20 AND manager_id=?;",
+                                session['id'])[0]['pos']
+        if session['managerStats']['clubrank'] - leaguePos >= 3:
+            if session['managerStats']['confidence'] <= 90:
+                session['managerStats']['confidence'] += 10
+            else:
+                session['managerStats']['confidence'] = 100
+        elif session['managerStats']['clubrank'] - leaguePos <= -2:
+            if session['managerStats']['confidence'] >= 10:
+                session['managerStats']['confidence'] -= 10
+            else:
+                session['managerStats']['confidence'] = 0
+            
+        db.execute("UPDATE managers SET board_confidence = ? WHERE id = ?;",
+                    session['managerStats']['confidence'], session['id'])
+                    
+        # generate board meeting news item
+        gotNews(session["id"], 16)
     else:
-        gotNews(session['id'], 21)
-        gotNews(session['id'], 22)
-        # add board confidence after a result and end of season reset
+        # generate news item
+        gotNews(session["id"])
+        
 
     return render_template('teletable.html',
                         getTopTable=session["getTopTable"],
                         getSubTable=session["getSubTable"],
-                        userTeam=session["userTeam"])
+                        userTeam=session["clubname"])
+
 
 @app.route("/standings", methods=["GET"])
 @login_required
 def standings():
     """Display current standings"""
 
-    session["getStandings"] = db.execute("SELECT club_name, rank, pld, gs, ga, (gs - ga) AS gd, pts, pos, pos_track FROM club_attr JOIN clubs on club_attr.club_id = clubs.club_id WHERE club_attr.club_id IN (SELECT rank FROM club_attr WHERE manager_id = ? AND rank < 21) ORDER BY pts DESC, gd DESC, pos ASC;",
+    session["getStandings"] = db.execute("SELECT club_name, rank, pld, gs, ga, (gs - ga) AS gd, pts, pos, pos_track FROM club_attr JOIN clubs on club_attr.club_id = clubs.club_id WHERE manager_id = ? AND rank < 21 ORDER BY pts DESC, gd DESC, pos ASC;",
                                          session["id"])
-
-    session["userTeam"] = db.execute("SELECT * FROM managers WHERE id = ?",
-                                     session["id"])[0]['club_name']
 
     return render_template('standings.html',
                            getStandings=session["getStandings"],
-                           userTeam=session["userTeam"])
+                           userTeam=session["clubname"])
+
+@app.route("/stats", methods=["GET"])
+@login_required
+def stats():
+    session['topGsSuper'] = db.execute("SELECT goals.player_id, flag, nationality, players.pos, name, club_name, club_attr.club_id, primary_colour, secondary_colour, age, value, player_attr.ovr, speed, strength, potential, handsomeness, squad_num, rank, count(*) AS goals FROM goals JOIN players ON goals.player_id = players.player_id JOIN player_attr ON goals.player_id = player_attr.player_id LEFT JOIN club_attr ON player_attr.club_id = club_attr.club_id LEFT JOIN clubs ON player_attr.club_id = clubs.club_id WHERE (goals.manager_id = :user AND player_attr.manager_id = :user AND club_attr.manager_id = :user) AND season = :season GROUP BY goals.player_id HAVING rank < 11 ORDER BY count(*) DESC LIMIT 10;",
+                                        season=session['managerStats']['season'], user=session['id'])
+
+    session['topGsSub'] = db.execute("SELECT goals.player_id, flag, nationality, players.pos, name, club_name, club_attr.club_id, primary_colour, secondary_colour, age, value, player_attr.ovr, speed, strength, potential, handsomeness, squad_num, rank, count(*) AS goals FROM goals JOIN players ON goals.player_id = players.player_id JOIN player_attr ON goals.player_id = player_attr.player_id LEFT JOIN club_attr ON player_attr.club_id = club_attr.club_id LEFT JOIN clubs ON player_attr.club_id = clubs.club_id WHERE (goals.manager_id = :user AND player_attr.manager_id = :user AND club_attr.manager_id = :user) AND season = :season GROUP BY goals.player_id HAVING rank > 10 ORDER BY count(*) DESC LIMIT 10;",
+                                     season=session['managerStats']['season'], user=session['id'])
+
+    return render_template('stats.html',
+                           superGoals=session['topGsSuper'],
+                           subGoals=session['topGsSub'],
+                           userTeam=session["clubname"],
+                           round=round)
 
 @app.route("/buy", methods=["POST"])
 @login_required
@@ -420,8 +577,8 @@ def buy():
     session["squad_num"] = int(request.form.get("squad_num"))
     session["cl_name"] = request.form.get("cl_name")
     
-    session["userClub"] = db.execute("SELECT * FROM managers JOIN club_attr ON managers.club_id = club_attr.club_id WHERE id = ?;",
-                                   session["id"])[0]
+    session["userClub"] = db.execute("SELECT * FROM club_attr JOIN managers ON club_attr.manager_id = managers.id WHERE manager_id = ? AND club_attr.club_id = 20;",
+                                     session["id"])[0]
 
     if session["cl_id"] == 21:
         session["news_id"] = 2.5
@@ -447,21 +604,28 @@ def buy():
     session['playerCount'] = db.execute("SELECT count(*) FROM player_attr WHERE club_id = ? AND manager_id = ?;", 
                                         session["cl_id"], session["id"])[0]
     if session["cl_id"] != 21:
-        if session['playerCount']['count(*)'] < 11:
+        if session['playerCount']['count(*)'] < 12:
             session["newPlayer"] = makePlayer(session["pl_pos"], session["squad_num"], session["cl_name"])
-            session["pl_stats"] = makeAttr("cl_name")
-            session["getManagers"] = db.execute("SELECT * FROM managers;")
-            for manager in session["getManagers"]:
-                db.execute("INSERT INTO player_attr (manager_id, player_id, club_id, squad_num, age, speed, strength, technique, potential, handsomeness, ovr, value) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);", 
-                            manager['id'], session["newPlayer"]['player_id'], session["cl_id"], session["squad_num"], session["pl_stats"]['age'], session["pl_stats"]['speed'], session["pl_stats"]['strength'], 
-                            session["pl_stats"]['technique'], session["pl_stats"]['potential'], session["pl_stats"]['handsomeness'], session["pl_stats"]['ovr'], session["pl_stats"]['value'])
-    
+            session["pl_stats"] = makeAttr(session["cl_name"])
+
+            db.execute("INSERT INTO players (starter_club, name, nationality, flag, pos) VALUES (?, ?, ?, ?, ?);", 
+                        session['newPlayer']["clubname"], session['newPlayer']["name"], session['newPlayer']["nationality"], 
+                        session['newPlayer']["flag"], session['newPlayer']["pos"])
+            
+            session['newPlayer']["player_id"] = db.execute("SELECT * FROM players WHERE starter_club = ? AND pos = ? AND name = ?;", 
+                                                            session['newPlayer']["clubname"], session['newPlayer']["pos"], session['newPlayer']["name"])[0]['player_id']
+            
+            db.execute("INSERT INTO player_attr (manager_id, player_id, club_id, squad_num, age, speed, strength, technique, potential, handsomeness, ovr, value) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);", 
+                        session['id'], session['newPlayer']["player_id"], session['cl_id'], session["squad_num"], session["pl_stats"]['age'], session["pl_stats"]['speed'], session["pl_stats"]['strength'], 
+                        session["pl_stats"]['technique'], session["pl_stats"]['potential'], session["pl_stats"]['handsomeness'], session["pl_stats"]['ovr'], session["pl_stats"]['value'])
+
     # send success email, update player info and budget
     session["newBudget"] = round((session["userClub"]['budget'] - session["pl_cost"]),2)
     db.execute("UPDATE managers SET budget = ? WHERE id = ?",
                 session["newBudget"], session["id"])
 
     gotNews(session['id'], session['news_id'], session['pl_id'])
+    gotNews(session['id'])
     db.execute("UPDATE player_attr SET club_id = 20, squad_num = ? WHERE player_id = ? AND manager_id = ?;",
                 session['playerCount']['count(*)'] + 1, session["pl_id"], session["id"])
     
@@ -475,16 +639,16 @@ def buy():
 @login_required
 def sell():
     """Make player sale"""
+
     session["pl_id"] = int(request.form.get("pl_id"))
     session["cl_id"] = int(request.form.get("cl_id"))
+    session["pl_cost"] = float(request.form.get("pl_cost"))
     session["sell_pl"] = db.execute("SELECT * FROM player_attr WHERE player_id = ? and manager_id = ?;",
                                         session['pl_id'], session['id'])[0]
 
     if session["cl_id"] == 21:
-        session["pl_cost"] = float(request.form.get("pl_cost"))
         session["cl_name"] = request.form.get("cl_name")
     else:
-        session["pl_cost"] = session['sell_pl']['value']
         session["cl_name"] = db.execute("SELECT club_name FROM clubs WHERE club_id = ?;",
                                         session['cl_id'])[0]['club_name']
 
@@ -520,6 +684,8 @@ def sell():
             db.execute("UPDATE player_attr SET squad_num = ? WHERE player_id = ? AND manager_id = ?;",
                         player['squad_num'], player["player_id"], session["id"])
     
+    # call news item
+    gotNews(session['id'])
 
     #  redirect to office page and display success message confirming player release
     if session["cl_id"] == 21:
@@ -536,6 +702,7 @@ def sell():
 @login_required
 def read():
     """ Mark email as read """
+
     session['rstatus'] = int(request.form['rstatus'])
     session['mail_id'] = int(request.form['mail_id'])
     if session['rstatus'] > 0:
@@ -543,6 +710,62 @@ def read():
                     session['rstatus'], session['mail_id'])
         return jsonify(rstatus=session["rstatus"],
                        mail_id=session["mail_id"])
+
+
+@app.route("/<club_name>")
+@login_required
+def profile(club_name):
+    """Display club info"""
+
+    # identify club
+    session['clubInfo'] = db.execute("SELECT * FROM clubs JOIN club_attr ON clubs.club_id = club_attr.club_id WHERE (club_name = ? AND club_attr.manager_id = ?) AND clubs.club_id < 20;",
+                      club_name.replace("_", " "), session['id'])
+    
+    # check search returns valid club and redirect if it doesn't 
+    if not session['clubInfo']:
+        return redirect('/')
+    else:
+        # query champgaffer.db for player attributes
+        session["getClubPlayers"] = db.execute("SELECT * FROM players JOIN player_attr ON players.player_id = player_attr.player_id WHERE player_attr.manager_id = :manager AND player_attr.club_id = :club_id ORDER BY squad_num;",
+                                                manager=session["id"], club_id=session["clubInfo"][0]['club_id'])
+        
+        # query champgaffer.db for goals scored
+        for player in session['getClubPlayers']:
+            player['goals'] = db.execute("SELECT count(*) AS goals FROM goals WHERE player_id=? AND manager_id=? AND season=?;", player['player_id'], session['id'], session['season'])[0]['goals']
+        
+        # query champgaffer.db for star defender
+        starDef = db.execute("SELECT name, age, nationality, flag, value, MAX(ovr) FROM players JOIN player_attr ON players.player_id = player_attr.player_id WHERE player_attr.player_id IN (SELECT player_attr.player_id FROM players JOIN player_attr ON players.player_id = player_attr.player_id WHERE pos = \'GK\' OR pos = \'DEF\') AND club_id = ? AND manager_id = ?;", 
+                            session['clubInfo'][0]['club_id'], session["id"])
+
+        # query champgaffer.db for star attacker
+        starAtt = db.execute("SELECT name, age, nationality, flag, value, MAX(ovr) FROM players JOIN player_attr ON players.player_id = player_attr.player_id WHERE player_attr.player_id IN (SELECT player_attr.player_id FROM players JOIN player_attr ON players.player_id = player_attr.player_id WHERE pos = \'MID\' OR pos = \'ATT\') AND club_id = ? AND manager_id = ?;", 
+                            session['clubInfo'][0]['club_id'], session["id"])
+        
+
+        session['clubStarDef'] = {
+            "playername": starDef[0]['name'],
+            "playerage": starDef[0]['age'],
+            "nationality": starDef[0]['nationality'],
+            "flag": starDef[0]['flag'],
+            "value": "£" + str(starDef[0]['value']) + "m",
+            "ovr": starDef[0]['MAX(ovr)']
+        }
+
+        session['clubStarAtt'] = {
+            "playername": starAtt[0]['name'],
+            "playerage": starAtt[0]['age'],
+            "nationality": starAtt[0]['nationality'],
+            "flag": starAtt[0]['flag'],
+            "value": "£" + str(starAtt[0]['value']) + "m",
+            "ovr": starAtt[0]['MAX(ovr)']
+        }
+
+        return render_template('club.html',
+                            clubInfo=session['clubInfo'][0],
+                            getPlayers=session["getClubPlayers"],
+                            starAtt=session['clubStarAtt'],
+                            starDef=session['clubStarDef'],
+                            round=round)
 
 
 @app.route("/login", methods=["GET", "POST"])
@@ -575,6 +798,8 @@ def login():
         # Remember which user has logged in
         session["id"] = rows[0]["id"]
         session["clubname"] = rows[0]["club_name"]
+        session["season"] = (rows[0]['current_season'] - rows[0]['season']) + 1
+        session["new_user"] = rows[0]["new_user"]
 
         # Redirect user to home page
         return redirect("/")
@@ -582,8 +807,6 @@ def login():
     # User reached route via GET (as by clicking a link or via redirect)
     else:
         return render_template("login.html")
-
-    return apology("Oops, something went awry", 403)
 
 
 @app.route("/logout")
@@ -600,6 +823,7 @@ def logout():
 @app.route("/signup", methods=["GET", "POST"])
 def signup():
     """Register manager"""
+    
     if request.method == "GET":
         return render_template("signup.html")
     else:
@@ -614,9 +838,6 @@ def signup():
         if not name:
             flash('Please enter a name for your manager.', 'alert-danger')
             return redirect("/signup")
-
-        # Query db for username
-        cur = db.execute("SELECT * FROM managers WHERE username = ?", username)
 
         # check club name is valid (has been entered and isn't already in database)
         clubname = request.form.get("clubname")
@@ -637,20 +858,22 @@ def signup():
         db.execute("INSERT INTO managers (username, hash, name, club_id, club_name, season, current_season) VALUES (?, ?, ?, 20, ?, ?, ?);", 
                    username, phash, name, clubname, thisYear, thisYear)
 
-        # rember logged in user
+        # remember logged in user
+        cur = db.execute("SELECT * FROM managers WHERE username = ?", username)
         session["id"] = cur[0]["id"]
         session["clubname"] = cur[0]["club_name"]
+        session["season"] = (cur[0]["current_season"] - cur[0]['season']) + 1
 
-        # initialize player attributes
-        getPlayers = db.execute("SELECT * FROM players;")
-        generatePlayerAttributes(session["id"], getPlayers)
-        
         # initialize club attributes
         getClubs = db.execute("SELECT * FROM clubs;")
         generateClubAttributes(session["id"], getClubs)
+
+        # initialize player attributes
+        getPlayers = db.execute("SELECT * FROM players WHERE player_id < 253;")
+        generatePlayerAttributes(session["id"], getPlayers)
         
         # generate season 1 fixtures using helper function
-        generateFixtures(session["id"], session["club_name"], thisYear)
+        generateFixtures(session["id"], session["clubname"], date.today().year)
 
         #generate welcome email via news.py
         gotNews(session["id"], 1)

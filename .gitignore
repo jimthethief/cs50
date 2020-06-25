@@ -21,11 +21,9 @@
 *.zip
 *.json
 
-# Logs and databases #
+# Logs #
 ######################
 *.log
-*.db
-*.sqlite
 
 # OS generated files #
 ######################

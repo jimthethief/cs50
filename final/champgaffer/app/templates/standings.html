@@ -6,9 +6,13 @@
 
 {% block main %}
 <div class="container">
-        <div class="row justify-content-start">
-            <h3>Sparkley's Super League</h3>
+    <div class="row">
+        <div class="col-12 col-md-12">
+            <div class="clubTitle superLeague">
+                <h1>Sparkley's Super League</h1>
+            </div>
         </div>
+    </div>
     <div class="row">
         <table class="table table-hover">
             <thead class="thead-dark">
@@ -47,7 +51,7 @@
                         {% set clubName = club['club_name']%}
                     {% endif %}
                     {% if club['rank'] < 11 %}
-                        <tr class="{{ class }}">
+                        <tr class="clickRow {{ class }}" onclick="viewClubPage({{ club }})">
                             
                             <td>{{ club['pos'] }}</td>
                             <td><i class="fas {{ arrow }}"></i></td>
@@ -63,8 +67,12 @@
             </tbody>
         </table>
     </div>
-    <div class="row justify-content-start">
-        <h3>SeaPower Sub League</h3>
+    <div class="row" style="margin-top: 60px;">
+        <div class="col-12 col-md-12">
+            <div class="clubTitle subLeague">
+                <h1>SeaPower Sub League</h1>
+            </div>
+        </div>
     </div>
     <div class="row">
         <table class="table table-hover">
@@ -106,7 +114,7 @@
                         {% set clubName = club['club_name'] %}
                     {% endif %}
                     {% if club['rank'] > 10 %}
-                        <tr class="{{ class }}">
+                        <tr class="clickRow {{ class }}" onclick="viewClubPage({{ club }})">
                             
                             <td>{{ club['pos'] - 10 }}</td>
                             <td><i class="fas {{ arrow }}"></i></td>
@@ -123,4 +131,10 @@
         </table>
     </div>
 </div>
+<script>
+    function viewClubPage(club) {
+        var club_link = club['club_name'].replace(" ", "_")
+        window.location.replace(`/${club_link}`);
+    }
+</script>
 {% endblock %}

@@ -1,0 +1,219 @@
+{% extends "layout.html" %}
+
+{% block title %}
+    Stats.
+{% endblock %}
+
+{% block main %}
+<div class="container">
+    <div class="row">
+        <div class="col-12 col-md-12">
+            <div class="clubTitle superLeague">
+                <h1>Sparkley's Super League</h1>
+                <p>Top Goalscorers</p>
+            </div>
+        </div>
+    </div>
+    <div class="row">
+        <table class="table table-hover">
+            <thead class="thead-dark">
+                <tr>
+                    <th>Nat</th>
+                    <th>Pos</th>
+                    <th>Player/Club</th>
+                    <th>Goals</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for player in superGoals %}
+                    {% if player['club_name'] == "new_user" %}
+                    {% set clubName = userTeam %}
+                 {% else %}
+                    {% set clubName = player['club_name'] %}
+                {% endif %}
+                    <tr class="clickRow" data-toggle="modal" data-target="#playerModal" data-player="{{ player }}">
+                        
+                        <td><img src="static/img/flags/{{ player['flag'] }}" width="30px" height="20px"/></td>
+                        <td>{{ player["pos"] }}</td>
+                        <td>{{ player["name"] }} ({{ clubName }})</td>
+                        <td>{{ player["goals"] }}</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    <div class="row" style="margin-top: 60px;">
+        <div class="col-12 col-md-12">
+            <div class="clubTitle subLeague">
+                <h1>SeaPower Sub League</h1>
+                <p>Top Goalscorers</p>
+            </div>
+        </div>
+    </div>
+    <div class="row">
+        <table class="table table-hover">
+            <thead class="thead-dark">
+                <tr>
+                    <th>Nat</th>
+                    <th>Pos</th>
+                    <th>Player/Club</th>
+                    <th>Goals</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for player in subGoals %}
+                    {% if player['club_name'] == "new_user" %}
+                        {% set clubName = userTeam %}
+                    {% else %}
+                        {% set clubName = player['club_name'] %}
+                    {% endif %}
+                    <tr class="clickRow" data-toggle="modal" data-target="#playerModal" data-player="{{ player }}">
+                        
+                        <td><img src="static/img/flags/{{ player['flag'] }}" width="30px" height="20px"/></td>
+                        <td>{{ player["pos"] }}</td>
+                        <td>{{ player["name"] }} ({{ clubName }})</td>
+                        <td>{{ player["goals"] }}</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+<div class="modal fade" id="playerModal" tabindex="-1" role="dialog" aria-labelledby="playerCard" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-body">
+                <div class="container-fluid">
+                    <div class="row">
+                        <div class="col-12">
+                            <h5 class="card-header" id="name"></h5>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="sticker">
+                                <div class="avatar-holder">
+                                    <img id="plNat" src="" style="width:30px; height=20px; margin:5px;"/>
+                                    <img class="card-img-top" id="plImg" src="https://avatars.dicebear.com/v2/male/placeholder.svg" alt="Card image">
+                                </div>
+                            </div>
+                        </div>
+                    </div> 
+                    <div class="row">
+                        <div class="col-12">
+                            <a id="clubLink"><h5 class="card-header" id="club"></h5></a>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-12">
+                            <table class="playerAttTable">
+                                <tbody>
+                                    <tr>
+                                        <td>Age: </td><td id="age"></td>
+                                        <td>Nationality</td></ts><td id="nat"></td>
+                                    </tr>
+                                    <tr>
+                                        <td>Potential: </td><td id="pot"></td>
+                                        <td>Value</td><td id="val"></td>
+                                    </tr>
+                                    <tr>
+                                        <td>Speed:</td><td id="spd"></td>
+                                        <td>Strength:</td><td id="str"></td>
+                                    </tr>
+                                    <tr></tr>
+                                        <td>Handsomeness: </td><td id="han"></td>
+                                        <td>Overall: </td><td id="rat"></td>
+                                    </tr>
+                                </tbody>
+                            </table>     
+                        </div>
+                    </div> 
+                </div>
+            </div>
+            <div class="modal-footer">
+                <div class="container">
+                    <div class="row">
+                        <div class="col-6 d-flex align-items-center">
+                            <p class="p-2" id="cost"></p>
+                        </div>
+                        <div class="col-6">
+                            <button type="button" class="btn btn-secondary modclick" data-dismiss="modal">Close</button>
+                            <button type="button" class="btn btn-primary modclick" id="buy">Buy Player</button>
+                        </div>
+                    </div>
+                </div>
+            </div>   
+        </div>    
+    </div>
+</div>
+<form action="/buy" id="buyform" method="post" style="display: none;">
+    <input name="pl_id" id="pl_id">
+    <input name="cl_id" id="cl_id">
+    <input name="cl_name" id="cl_name">
+    <input name="cl_rank" id="cl_rank">
+    <input name="pl_cost" id="pl_cost">
+    <input name="pl_pos" id="pl_pos">
+    <input name="squad_num" id="squad_num">
+</form>
+<script>
+
+$('#playerModal').on('show.bs.modal', function (event) {
+    var player = $(event.relatedTarget)
+    var deets = player.data('player').replace(/['']+/g, '"');
+
+    deets = JSON.parse(deets);
+    var club_link = deets['club_name'].replace(" ", "_");
+
+    var msg;
+    deets["cost"] = deets['value']
+    msg = `Place an offer of £${deets['cost']}m for ${deets['name']}?`
+
+    if (deets['club_id'] === 20) {
+        document.getElementById('buy').style.display = "none";
+        deets["club_name"] = {{ userTeam | tojson }};
+    }
+    else {
+        document.getElementById('buy').style.display = "inline-block";
+    }
+
+    $('head').append(`<style>#club, #name, #cost, .modclick{background: ${deets['primary_colour']}; color: ${deets['secondary_colour']};} .sticker::before{background-image: linear-gradient(to bottom right, ${deets['primary_colour']}, ${deets['secondary_colour']});background-size: cover;}</style>`);
+    $("#plImg").attr("src",`https://avatars.dicebear.com/v2/male/${deets['name']}.svg`);
+    $("#plNat").attr("src",`static/img/flags/${deets['flag']}`);
+    $(document).find('#name').text(`${deets['name']} — ${deets['pos']}`);
+    $(document).find('#club').text(deets['club_name']);
+    $(document).find('#clubLink').attr("href", `/${club_link}`)
+    $(document).find('#age').text(`${deets['age']}`);
+    $(document).find('#nat').text(`${deets['nationality']}`);
+    $(document).find('#val').text(`£${deets['value']}m`);
+    $(document).find('#rat').text(`${Math.round(deets['ovr'])}`);
+    $(document).find('#spd').text(`${deets['speed']}`);
+    $(document).find('#str').text(`${deets['strength']}`);
+    $(document).find('#pot').text(`${deets['potential']}`);
+    $(document).find('#han').text(`${deets['handsomeness']}`);
+    $(document).find('#cost').text(`Transfer cost: £${deets['cost']}m`);
+
+    document.getElementsByName("pl_id")[0].value = deets['player_id'];
+    document.getElementsByName("cl_id")[0].value = deets['club_id'];
+    document.getElementsByName("cl_name")[0].value = deets['club_name'];
+    document.getElementsByName("cl_rank")[0].value = deets['rank'];
+    document.getElementsByName("pl_cost")[0].value = deets['cost'];
+    document.getElementsByName("pl_pos")[0].value = deets['pos'];
+    document.getElementsByName("squad_num")[0].value = deets['squad_num'];
+
+    var form = document.getElementById('buyform');
+
+    // Unbind any previously cancelled events and fire confirmation message
+    $(document).off('click', '#buy').on('click', '#buy', function (event) {
+            if (!confirm(msg)) {
+                return false;
+            }
+            else {
+                form.submit();
+                return true;
+            }
+    });
+});
+
+
+</script>
+{% endblock %}

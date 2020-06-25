@@ -64,12 +64,18 @@
             <tbody>
                 {% for player in getPlayers %}
                     <tr class="clickRow" data-toggle="modal" data-target="#playerModal" data-player="{{ player }}">
-                        
+                        {% if player['primary_colour'] == "white" %}
+                            {% set primary = player['secondary_colour'] %}
+                            {% set secondary = player['primary_colour'] %}
+                        {% else %}
+                            {% set primary = player['primary_colour'] %}
+                            {% set secondary = player['secondary_colour'] %}
+                        {% endif %}
                         <td><img src="static/img/flags/{{ player['flag'] }}" width="30px" height="20px"/></td>
                         <td>{{ player["pos"] }}</td>
                         <td>{{ player["name"] }} ({{ player["club_name"] }})</td>
                         <td>{{ player["age"] }}</td>
-                        <td>{{ player["ovr"] }}</td>
+                        <td><div style="width: 100%; height: 50%; border: solid 1px grey;"><div style="font-size: small;height: 100%; width:{{ player['ovr'] * 5 }}%; background: {{ primary }}; color: {{ secondary }}">{{ round(player['ovr']) }}</div></div></td>
                         <td>£{{ player["value"] }}m</td>
                     </tr>
                 {% endfor %}
@@ -99,7 +105,7 @@
                     </div> 
                     <div class="row">
                         <div class="col-12">
-                            <h5 class="card-header" id="club"></h5>
+                            <a id="clubLink"><h5 class="card-header" id="club"></h5></a>
                         </div>
                     </div>
                     <div class="row">
@@ -160,6 +166,7 @@ $('#playerModal').on('show.bs.modal', function (event) {
     var deets = player.data('player').replace(/['']+/g, '"');
     
     deets = JSON.parse(deets);
+    var club_link = deets['club_name'].replace(" ", "_");
 
     var msg;
 
@@ -176,11 +183,12 @@ $('#playerModal').on('show.bs.modal', function (event) {
     $("#plImg").attr("src",`https://avatars.dicebear.com/v2/male/${deets['name']}.svg`);
     $("#plNat").attr("src",`static/img/flags/${deets['flag']}`);
     $(document).find('#club').text(deets['club_name']);
+    $(document).find('#clubLink').attr("href", `/${club_link}`)
     $(document).find('#name').text(`${deets['name']} — ${deets['pos']}`);
     $(document).find('#age').text(`${deets['age']}`);
     $(document).find('#nat').text(`${deets['nationality']}`);
     $(document).find('#val').text(`£${deets['value']}m`);
-    $(document).find('#rat').text(`${deets['ovr']}`);
+    $(document).find('#rat').text(`${Math.round(deets['ovr'])}`);
     $(document).find('#spd').text(`${deets['speed']}`);
     $(document).find('#str').text(`${deets['strength']}`);
     $(document).find('#pot').text(`${deets['potential']}`);
