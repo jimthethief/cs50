@@ -4,10 +4,7 @@ from faker import Faker
 
 import collections
 
-
-ages = [randint(16,19), randint(20, 24), randint(24, 29), randint(30, 33), randint(34, 37), randint(38, 40)]
-ageWeights = [0.2, 0.3, 0.35, 0.1, 0.08, 0.02]
-
+# probability weightings for player attributes
 attribute = [randint(1,5), randint(6,9), randint(10,12), randint(13, 14), randint(15, 16), randint(17, 18), 19, 20]
 garbage = [0.2, 0.3, 0.25, 0.15, 0.05, 0.04, 0.01, 0]
 low = [0.1, 0.2, 0.25, 0.3, 0.05, 0.05, 0.04, 0.01]
@@ -20,6 +17,8 @@ free = [0.1, 0.2, 0.2, 0.2, 0.125, 0.1, 0.05, 0.025]
 
 
 def punterRating(ovr):
+    """Return appropriate probability weighting list from provided club ovr"""
+
     if ovr >= 19:
         return elite
     elif ovr >= 17:
@@ -37,6 +36,9 @@ def punterRating(ovr):
         
 
 def playerValue(ovr, handsomeness, potential):
+    """Determine player value from ovr, handsomeness and potential attributes"""
+
+    # initial value list
     values = [uniform(0.1,0.2), uniform(0.2,0.4), uniform(0.4,0.5), uniform(0.5,0.6), uniform(0.6,0.8), uniform(0.9, 1.2), uniform(1.3, 1.5), uniform(1.6, 2)]
     value = 0
     if ovr > 18:
@@ -57,7 +59,7 @@ def playerValue(ovr, handsomeness, potential):
         value += uniform(value * 0.2, value * 0.4)
     return round((value), 1)
    
-
+# nationality list
 nations = [
     {"nationality": "English", "nat_code": "en_GB", "flag": "eng.svg"}, 
     {"nationality": "Irish", "nat_code": "en_GB", "flag": "ire.svg"}, 
@@ -84,10 +86,13 @@ nations = [
     {"nationality": "Australian", "nat_code": "en_NZ", "flag": "aus.svg"}
 ]
 
+# probability weightings for nationalities
 nationWeights = [10, 2, 5, 2, 0.7, 6, 1, 0.5, 5, 0.5, 0.5, 5, 4, 4, 1, 4, 5, 2, 3, 0.5, 0.5, 0.5, 0.5]
 
 
 def nameFaker(nat_code):
+    """Return nationality dependent fake name"""
+
     fake = Faker(nat_code)
     if nat_code == "ja_JP":  
         name = fake.first_romanized_name() + " " + fake.last_romanized_name()
@@ -95,7 +100,7 @@ def nameFaker(nat_code):
         name = fake.first_name_male() + " " + fake.last_name()
     return name
 
-
+# initial team dictionary for seeding database
 Teams = {
     "Merseyside Mawlers": {"club_id": 1, "rank": 1, "primary-color": "Crimson", "secondary-color": "Gold", "ovr": randint(19, 20), "formation": "4-3-3", "manager": nameFaker("de_DE"), "desc": "As efficient as a German car.", "attendance": 0.7, "capacity": 54000, "rival": 2},
     "Lannister City": {"club_id": 2, "rank": 2, "primary-color": "LightSkyBlue", "secondary-color": "#1C2C5B", "ovr": randint(19, 20), "formation": "3-5-2", "manager": nameFaker("es_ES"), "desc": "Owned by an oil baron, probably.", "attendance": 0.5, "capacity": 56000, "rival": 6},
@@ -120,11 +125,13 @@ Teams = {
     "Free Agents": {"club_id": 21, "rank": 21, "primary-color": "white", "secondary-color": "black", "ovr": choices(attribute, free)[0], "formation": "10-10-10", "manager": nameFaker(choices(nations, nationWeights)[0]['nat_code']), "desc": "This player is available on a free.", "attendance": 0, "capacity": 0, "rival": 0}
 }
 
-def makePlayer(pos, num, team):
-    player = dict.fromkeys(["player_id", "club_id", "clubname", "squadnum", "name", "nationality", "nat_code", "flag", "pos"])
+
+def makePlayer(pos, team):
+    """Create new player for team"""
+
+    player = dict.fromkeys(["player_id", "club_id", "clubname", "name", "nationality", "nat_code", "flag", "pos"])
     player["club_id"] = Teams[team]['club_id']
     player["clubname"] = team
-    player["squadnum"] = num
     nationinfo = choices(nations, nationWeights)[0]
     player["nationality"] = nationinfo['nationality']
     player["nat_code"] = nationinfo['nat_code']
@@ -136,7 +143,12 @@ def makePlayer(pos, num, team):
 
 
 def makeSquad(team):
+    """Create new 11-player squad for team"""
+
+    # determine no. of players in each position
     formation = Teams[team]["formation"].split("-")
+
+    # call makePlayer for amount of players required in each position and add to squad
     for pos in range(1):
         gk = makePlayer("GK", team)
         squad.append(gk)
@@ -152,8 +164,13 @@ def makeSquad(team):
     
     return squad
 
+# probability weightings for player ages
+ages = [randint(16,19), randint(20, 24), randint(24, 29), randint(30, 33), randint(34, 37), randint(38, 40)]
+ageWeights = [0.2, 0.3, 0.35, 0.1, 0.08, 0.02]
 
 def makeAttr(team):
+    """Create player attributes"""
+
     pl_attr = dict.fromkeys(["player_id", "club_id", "age", "speed", "strength", "technique", "potential", "handsomeness", "ovr", "value"])
     pl_attr["club_id"] = Teams[team]['club_id']
     pl_attr["speed"] = choices(attribute, punterRating(Teams[team]['ovr']))[0]

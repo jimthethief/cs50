@@ -230,6 +230,7 @@
                     locateScore.style.color = 'white';
                     displayGoal(team, teamScorer[0], teamScorer[1]);
                     locatePundit.style.visibility = 'hidden';
+                    locatePundit.textContent = `The score here is ${hg} - ${ag}`;
                 }
                 else {
                     locatePundit.style.visibility = 'visible';
@@ -321,7 +322,6 @@
             }
             
             // randomise gameplay
-            
             goalsTtl = homeGls.length + awayGls.length
             homeScorers = []
             awayScorers = []
@@ -349,8 +349,6 @@
                     goalsTtl--; 
                 }
             }
-        console.log(homeScorers)
-        console.log(awayScorers)
 
         counter = 0;
         hg = 0;

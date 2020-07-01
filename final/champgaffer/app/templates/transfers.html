@@ -207,13 +207,13 @@ $('#playerModal').on('show.bs.modal', function (event) {
 
     // Unbind any previously cancelled events and fire confirmation message
     $(document).off('click', '#buy').on('click', '#buy', function (event) {
-            if (!confirm(msg)) {
-                return false;
-            }
-            else {
-                form.submit();
-                return true;
-            }
+        if (!confirm(msg)) {
+            return false;
+        }
+        else {
+            form.submit();
+            return true;
+        }
     });
 });
 

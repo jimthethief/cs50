@@ -1,3 +1,5 @@
+/* Ideas based heavily on Hannah Oppenheimer's neat execution of football formations using CSS Grid / JS */
+/* https://www.opihana.com/2017/11/08/Soccer-Formations-in-CSS-Grid/ */
 
 function check() {
     if(document.getElementById('433').checked) {

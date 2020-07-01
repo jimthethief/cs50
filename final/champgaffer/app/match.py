@@ -4,8 +4,9 @@ from cs50 import SQL
 
 db = SQL("sqlite:///champgaffer.db")
 
-# return avg ratings and star player for position
 def posStats(posList):
+    """Return avg ratings and star player for position"""
+
     total = 0
     mx = 0
     for player in posList:
@@ -16,20 +17,25 @@ def posStats(posList):
     ovr = total / (len(posList))
     return ovr, star
 
-# compare attacking star platers
+
 def getStarAtk(md, at):
+    """Compare attacking star players"""
+
+    # return player with highest 'ovr' stat
     if md['ovr'] > at['ovr']:
         return md
+    # return attacker if 'ovr' stats identical
     else:
         return at 
 
-# return team stats for match sim
-def matchSetup(teamlineup, teamformation, teaminfo):
 
+def matchSetup(teamlineup, teamformation, teaminfo):
+    """Return club and player stats to set up match"""
     defence = []
     midfield = []
     attack = []
     
+    # add players to position list according to teamformation
     shape = teamformation.split("-")
     posCount = 0
     for player in range(posCount, (int(shape[0])+1)):
@@ -42,29 +48,37 @@ def matchSetup(teamlineup, teamformation, teaminfo):
         attack.append(teamlineup[player])
     posCount += (int(shape[2]))   
 
+    # add player stats to variables
     defOvr, starDef = posStats(defence)
     slicedDef = defence[1:]
     midOvr, starMid = posStats(midfield)
     attOvr, starAtt = posStats(attack)
     starAtk = getStarAtk(starMid, starAtt)
 
+    # compile team stats in dictionary
     teamStats = {'club_id': teaminfo['club_id'], 'attack': attOvr, 'defence': defOvr, 'midfield': midOvr, 'consistency': teaminfo['ovr'], 'starAtk': starAtk['name'], 'starAtkRtg': starAtk['ovr'], 'starDef': starDef['name'], 'starDefRtg': starDef['ovr'], 'attendance': randint((teaminfo['capacity'] * teaminfo['attendance']), teaminfo['capacity']), 'capacity': teaminfo['capacity'], 'leaguepos': teaminfo['pos'], 'rival': teaminfo['rival']}     
     
+    # compile player stats for each position in list
     teamList = [slicedDef, midfield, [starMid], attack, [starAtt]]
 
     return teamStats, teamList
 
-# boost attendances for rival matches
+
 def attendanceBoost(homestats, awaystats):
+    """Boost attendances for rival matches"""
+
     attendanceBoost = 0
     if abs(homestats['leaguepos'] - awaystats['leaguepos']) < 3:
         attendanceBoost += (homestats['attendance'] * 0.1)
     if homestats['rival'] == awaystats['club_id']:
         attendanceBoost += (homestats['attendance'] * 0.2)
+
     return round(attendanceBoost)
 
 
 def simMatch(home, homeList, away, awayList):
+    """Simulate match using home and away stats"""
+
     # gauge home advantage from attendance
     boost = attendanceBoost(home, away)
     attendance = min((home["attendance"] + boost), home['capacity'])
@@ -106,63 +120,3 @@ def simMatch(home, homeList, away, awayList):
     return glsHome, glsAway, homeScorers, awayScorers, attendance
 
 
-"""
-getFixtures =  db.execute("SELECT home, away FROM fixtures JOIN managers ON fixtures.manager_id = managers.id WHERE (managers.id = ? AND week = matchday) AND (home != managers.club_name AND away != managers.club_name);",
-                            3)
-results = []
-fixture_id = 622
-for fixture in getFixtures:
-    homeSimName = fixture['home']
-    awaySimName = fixture['away']
-    homeSimInfo = db.execute("SELECT club_name, primary_colour, secondary_colour, attendance, capacity, ovr, formation, pos, rival, pts, gs, ga, clubs.club_id FROM clubs JOIN club_attr ON clubs.club_id = club_attr.club_id WHERE clubs.club_name = ? AND manager_id = ?;",
-                                homeSimName, 3)[0]
-
-    homeSimTeam = db.execute("SELECT * FROM players JOIN player_attr ON players.player_id = player_attr.player_id WHERE player_attr.manager_id = ? AND player_attr.club_id = ?;",
-                                3, homeSimInfo["club_id"])[:11]
-
-    awaySimInfo = db.execute("SELECT club_name, primary_colour, secondary_colour, attendance, capacity, ovr, formation, pos, rival, pts, gs, ga, clubs.club_id FROM clubs JOIN club_attr ON clubs.club_id = club_attr.club_id WHERE clubs.club_name = ? AND manager_id = ?;",
-                                awaySimName, 3)[0]
-
-    awaySimTeam = db.execute("SELECT * FROM players JOIN player_attr ON players.player_id = player_attr.player_id WHERE player_attr.manager_id = ? AND player_attr.club_id = ?;",
-                                3, awaySimInfo["club_id"])[:11]
-    
-    homeSimFormation = homeSimInfo['formation']
-    awaySimFormation = awaySimInfo['formation']
-
-    homeSim, homeSimTeamList = matchSetup(homeSimTeam, homeSimFormation, homeSimInfo)
-    awaySim, awaySimTeamList = matchSetup(awaySimTeam, awaySimFormation, awaySimInfo)
-    homeSimGls, awaySimGls, homeSimScorers, awaySimScorers, simAttendance = simMatch(homeSim, homeSimTeamList, awaySim, awaySimTeamList)
-    
-    print(f"{homeSimName}{homeSimGls} - {awaySimGls}{awaySimName}")
-
-    if homeSimGls > awaySimGls:
-        homeSimPts = 3
-        awaySimPts = 0
-    elif awaySimGls > homeSimGls:
-        homeSimPts = 0
-        awaySimPts = 3
-    else:
-        homeSimPts = 1
-        awaySimPts = 1
-    
-    db.execute("UPDATE club_attr SET pld = :pld, gs = :gs, ga = :ga, pts = :pts WHERE manager_id = :id AND club_id = :club_id;",
-                pld=17, gs=homeSimInfo['gs'] + homeSimGls, ga=homeSimInfo['ga'] + awaySimGls, 
-                pts=homeSimInfo['pts'] + homeSimPts, id=3, club_id=homeSimInfo['club_id'])
-            
-    db.execute("UPDATE club_attr SET pld = :pld, gs = :gs, ga = :ga, pts = :pts WHERE manager_id = :id AND club_id = :club_id;",
-                pld=17, gs=awaySimInfo['gs'] + awaySimGls, ga=awaySimInfo['ga'] + homeSimGls, 
-                pts=awaySimInfo['pts'] + awaySimPts, id=3, club_id=awaySimInfo['club_id'])
-
-    db.execute("UPDATE fixtures SET played = :played WHERE fixture_id = :fixture_id AND manager_id = :manager_id;",
-                played=1, fixture_id=fixture_id, manager_id=3)
-    
-    fixture_id += 1
-
-    for scorer in homeSimScorers + awaySimScorers:
-        db.execute("INSERT INTO goals(manager_id, player_id, week, season) VALUES(:manager_id, :player_id, :week, :season);",
-                    manager_id=3, player_id=scorer['player_id'], week=17, 
-                    season=2)
-
-    db.execute("UPDATE managers SET matchday = ? WHERE id = ?;",
-                18, 3)
-"""
