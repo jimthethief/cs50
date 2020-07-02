@@ -626,7 +626,7 @@ def buy():
                                         session["cl_id"], session["id"])[0]
     if session["cl_id"] != 21:
         if session['playerCount']['count(*)'] < 12:
-            session["newPlayer"] = makePlayer(session["pl_pos"], session["squad_num"], session["cl_name"])
+            session["newPlayer"] = makePlayer(session["pl_pos"], session["cl_name"])
             session["pl_stats"] = makeAttr(session["cl_name"])
 
             db.execute("INSERT INTO players (starter_club, name, nationality, flag, pos) VALUES (?, ?, ?, ?, ?);", 
