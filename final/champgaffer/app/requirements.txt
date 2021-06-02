@@ -21,5 +21,5 @@ SQLAlchemy==1.3.16
 sqlparse==0.3.1
 termcolor==1.1.0
 text-unidecode==1.3
-urllib3==1.25.9
+urllib3==1.26.5
 Werkzeug==0.16.0
